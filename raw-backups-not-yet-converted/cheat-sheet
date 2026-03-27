@@ -1,0 +1,520 @@
+<h1>Kaspa Consensus Concepts Cheat Sheet</h1>
+<p><em>A comprehensive guide to Kaspa's blockDAG consensus system</em></p>
+<h2>Quick Reference</h2>
+<table>
+  <tbody>
+    <tr>
+      <th>Parameter</th>
+      <th>Value (Post-Crescendo)</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>Blocks Per Second</td>
+      <td>10 BPS</td>
+      <td>Network throughput</td>
+    </tr>
+    <tr>
+      <td>GHOSTDAG K</td>
+      <td>124</td>
+      <td>Anticone size limit</td>
+    </tr>
+    <tr>
+      <td>Block Time</td>
+      <td>100ms</td>
+      <td>Target time between blocks</td>
+    </tr>
+    <tr>
+      <td>Finality</td>
+      <td>12 hours</td>
+      <td>Time until transactions are irreversible</td>
+    </tr>
+    <tr>
+      <td>Pruning Depth</td>
+      <td>30 hours</td>
+      <td>How far back nodes store data</td>
+    </tr>
+    <tr>
+      <td>Merge Depth</td>
+      <td>1 hour</td>
+      <td>Maximum age of mergeable blocks</td>
+    </tr>
+    <tr>
+      <td>Block Mass Limit</td>
+      <td>500,000</td>
+      <td>Computational cost limit per block</td>
+    </tr>
+    <tr>
+      <td>Max TX Inputs/Outputs</td>
+      <td>1,000 each</td>
+      <td>Transaction size limits</td>
+    </tr>
+  </tbody>
+</table>
+<hr>
+<h2>Part I: Core Concepts</h2>
+<p><em>Why Kaspa exists and what problems it solves</em></p>
+<h3>1. Consensus Protocols</h3>
+<p><strong>PHANTOM</strong></p>
+<ul>
+  <li><strong>What</strong>: An NP-hard consensus protocol that produces a linear ordering over blocks in a DAG by finding the maximum k-cluster</li>
+  <li><strong>Why</strong>: Need to take a DAG as input and output a linear order, but the optimal solution is computationally infeasible for real-time consensus</li>
+</ul>
+<p><strong>GHOSTDAG</strong></p>
+<ul>
+  <li><strong>What</strong>: The "greedy" approximation of PHANTOM where the selected parent chain and k-cluster are inherited from the parent instead of recalculated from scratch each round</li>
+  <li><strong>Why</strong>: Achieves linear ordering over a DAG in polynomial time (computationally feasible) while maintaining security properties close to optimal PHANTOM</li>
+</ul>
+<p><strong>DAGKNIGHT</strong></p>
+<ul>
+  <li><strong>What</strong>: A consensus protocol that outputs linear ordering over a DAG while removing maximum network delay as an input parameter and remaining secure for ANY network latency</li>
+  <li><strong>Why</strong>: GHOSTDAG security breaks down once the assumed max network delay is violated; DAGKNIGHT security does not break down at any latency, making it more robust to network conditions</li>
+</ul>
+<h3>2. GHOSTDAG Implementation Details</h3>
+<p><strong>Selected Parent</strong></p>
+<ul>
+  <li><strong>What</strong>: The parent block with the highest blue work, chosen as the chain anchor for the new block</li>
+  <li><strong>Why</strong>: Ensures the heaviest (most work) chain is always extended, providing Nakamoto-style security guarantees in a DAG structure</li>
+</ul>
+<p><strong>Blue Score</strong></p>
+<ul>
+  <li><strong>What</strong>: The number of blue (honest) blocks in a block's past, used as a measure of chain depth</li>
+  <li><strong>Why</strong>: Provides a monotonically increasing metric for block ordering that accounts for parallel blocks in the DAG, replacing traditional block height</li>
+</ul>
+<p><strong>Blue Work</strong></p>
+<ul>
+  <li><strong>What</strong>: The accumulated proof-of-work from all blue blocks in a block's past</li>
+  <li><strong>Why</strong>: Determines the heaviest chain for selected parent selection and provides security against 51% attacks by measuring cumulative honest work</li>
+</ul>
+<p><strong>Mergeset Blues/Reds</strong></p>
+<ul>
+  <li><strong>What</strong>: Blue blocks are those in the mergeset that don't violate the k-cluster constraint; red blocks are those that do violate it</li>
+  <li><strong>Why</strong>: Blue blocks contribute to consensus ordering and rewards; red blocks are acknowledged but treated as potentially adversarial, preventing attackers from gaining rewards</li>
+</ul>
+<p><strong>K-Cluster Violation Check</strong></p>
+<ul>
+  <li><strong>What</strong>: Algorithm that checks if adding a candidate block would create an anticone larger than K with any existing blue block</li>
+  <li><strong>Why</strong>: Enforces the security assumption that honest blocks arrive within network delay bounds; blocks violating this are colored red to prevent attacks</li>
+</ul>
+<h3>3. Security Foundations</h3>
+<p><strong>2D&lambda; Parameter</strong></p>
+<ul>
+  <li><strong>What</strong>: The product of 2 &times; maximum network delay (D) &times; block rate (&lambda;), used to calculate GHOSTDAG K</li>
+  <li><strong>Why</strong>: Represents the expected anticone size under honest conditions; K is chosen such that larger anticones occur with probability &lt; &delta; (1%), ensuring security</li>
+</ul>
+<p><strong>Anticone</strong></p>
+<ul>
+  <li><strong>What</strong>: The set of blocks that are neither ancestors nor descendants of a given block (parallel blocks in the DAG)</li>
+  <li><strong>Why</strong>: Measures network concurrency; blocks with large anticones may indicate network delays or attacks, hence the K parameter limits acceptable anticone sizes</li>
+</ul>
+<p><strong>GHOSTDAG K</strong></p>
+<ul>
+  <li><strong>What</strong>: The anticone size parameter that determines how many blocks can be in a block's anticone while still being considered "blue" (honest)</li>
+  <li><strong>Why</strong>: Calculated to ensure anticones larger than K occur with probability less than &delta; (0.01), maintaining security under network delay assumptions</li>
+</ul>
+<p><strong>Network Delay Bound</strong></p>
+<ul>
+  <li><strong>What</strong>: Estimated upper bound on network propagation delay, set to 5 seconds</li>
+  <li><strong>Why</strong>: Used in GHOSTDAG K calculations to ensure security under realistic network conditions; blocks arriving within this bound are expected to be properly ordered</li>
+</ul>
+<p><strong>Reachability Service</strong></p>
+<ul>
+  <li><strong>What</strong>: Efficient data structure for answering ancestor/descendant queries in the DAG</li>
+  <li><strong>Why</strong>: GHOSTDAG requires frequent reachability checks during k-cluster validation; optimized reachability queries make the greedy algorithm computationally feasible</li>
+</ul>
+<h3>4. Economic Model</h3>
+<p><strong>Blue vs Red Blocks</strong></p>
+<ul>
+  <li><strong>What</strong>: Blue blocks are those in the mergeset that don't violate the k-cluster constraint; red blocks are those that do violate it</li>
+  <li><strong>Why</strong>: Blue blocks contribute to consensus ordering and rewards; red blocks are acknowledged but treated as potentially adversarial, preventing attackers from gaining rewards</li>
+</ul>
+<p><strong>Blue Block Rewards</strong></p>
+<ul>
+  <li><strong>What</strong>: Each blue block in the mergeset (that's also in the DAA window) receives its subsidy + fees as a separate coinbase output</li>
+  <li><strong>Why</strong>: Incentivizes honest mining and proper parent selection; rewards blocks that contribute to consensus ordering</li>
+</ul>
+<p><strong>Red Block Rewards</strong></p>
+<ul>
+  <li><strong>What</strong>: Post-Crescendo, red blocks in the mergeset contribute their fees (and subsidy if in DAA window) to a single output paid to the merging block's miner</li>
+  <li><strong>Why</strong>: Prevents attackers from profiting from red blocks while still acknowledging their existence; changed in Crescendo to include fees from non-DAA red blocks</li>
+</ul>
+<p><strong>Mass System Overview</strong></p>
+<ul>
+  <li><strong>What</strong>: Three-component system measuring block computational cost: compute mass (CPU), storage mass (UTXO growth), transient mass (bandwidth/memory)</li>
+  <li><strong>Why</strong>: Prevents blocks from being too expensive to validate while incentivizing UTXO consolidation; ensures decentralization</li>
+</ul>
+<p><strong>Emission Schedule</strong></p>
+<ul>
+  <li><strong>What</strong>: Block rewards start at 500 KAS per second for ~6 months, then switch to deflationary schedule</li>
+  <li><strong>Why</strong>: Provides initial distribution and mining incentives while transitioning to long-term sustainable emission</li>
+</ul>
+<hr>
+<h2>Part II: How Kaspa Works</h2>
+<p><em>The concrete rules and mechanisms that make Kaspa function</em></p>
+<h3>5. Block Production &amp; DAG Structure</h3>
+<p><strong>Blocks Per Second (BPS)</strong></p>
+<ul>
+  <li><strong>What</strong>: The expected number of blocks produced per second (10 BPS post-Crescendo)</li>
+  <li><strong>Why</strong>: Higher BPS increases throughput; 10 BPS provides ~10x more transactions per second than traditional blockchains</li>
+</ul>
+<p><strong>Target Time Per Block</strong></p>
+<ul>
+  <li><strong>What</strong>: The target interval between blocks in milliseconds (100ms for 10 BPS)</li>
+  <li><strong>Why</strong>: Determines the block production rate, balancing throughput with network propagation time and security</li>
+</ul>
+<p><strong>Max Block Parents</strong></p>
+<ul>
+  <li><strong>What</strong>: Maximum number of direct parent blocks a new block can reference (typically K/2, capped at 10-16)</li>
+  <li><strong>Why</strong>: Limits processing complexity while ensuring sufficient DAG connectivity; prevents quadratic growth of parent references with BPS</li>
+</ul>
+<p><strong>Mergeset Size Limit</strong></p>
+<ul>
+  <li><strong>What</strong>: The maximum number of blocks that can be in a block's mergeset (typically 2&times;K, bounded 180-512)</li>
+  <li><strong>Why</strong>: Keeps computation manageable for UTXO validation and reachability calculations; exceeding this limit results in block rejection</li>
+</ul>
+<p><strong>Merge Depth</strong></p>
+<ul>
+  <li><strong>What</strong>: The maximum depth in the past that blocks can be merged without violating bounded merge depth rules (1 hour = 3,600 seconds)</li>
+  <li><strong>Why</strong>: Ensures blocks eventually converge and prevents attacks where old blocks are merged to manipulate the DAG structure</li>
+</ul>
+<h3>6. Difficulty Adjustment System</h3>
+<p><strong>DAA Score</strong></p>
+<ul>
+  <li><strong>What</strong>: Difficulty Adjustment Algorithm score; a monotonically increasing counter representing the cumulative "work" in the selected chain</li>
+  <li><strong>Why</strong>: Provides a canonical ordering for blocks and triggers fork activations; used instead of block height in DAG systems</li>
+</ul>
+<p><strong>Difficulty Window Size</strong></p>
+<ul>
+  <li><strong>What</strong>: The number of blocks sampled to calculate the next difficulty target (660 blocks sampled at 4-second intervals)</li>
+  <li><strong>Why</strong>: Smooths difficulty adjustments to respond to hashrate changes while avoiding manipulation; maintains ~44 minutes of history</li>
+</ul>
+<p><strong>Difficulty Sample Rate</strong></p>
+<ul>
+  <li><strong>What</strong>: How frequently blocks are sampled from the DAG for difficulty calculation (every 2&times;BPS blocks = every 20 blocks at 10 BPS)</li>
+  <li><strong>Why</strong>: Reduces computation at high BPS while maintaining accurate difficulty tracking</li>
+</ul>
+<p><strong>Difficulty Scaling at Activation</strong></p>
+<ul>
+  <li><strong>What</strong>: At Crescendo activation, difficulty target is scaled by the ratio of old/new target time per block</li>
+  <li><strong>Why</strong>: Maintains consistent mining difficulty across the BPS transition; prevents sudden hashrate-driven difficulty spikes or drops</li>
+</ul>
+<p><strong>Minimum Window Enforcement</strong></p>
+<ul>
+  <li><strong>What</strong>: DAA requires at least 150 blocks in the difficulty window before activating dynamic adjustment</li>
+  <li><strong>Why</strong>: Stabilizes difficulty during network startup and fork transitions; with 4s sampling equals 10 minutes of fixed difficulty</li>
+</ul>
+<p><strong>Max Difficulty Target</strong></p>
+<ul>
+  <li><strong>What</strong>: Highest allowed PoW difficulty target, set to 2<sup>255</sup> - 1</li>
+  <li><strong>Why</strong>: Defines the easiest possible difficulty; blocks with higher targets are invalid</li>
+</ul>
+<h3>7. Timestamp Validation System</h3>
+<p><strong>Past Median Time (PMT)</strong></p>
+<ul>
+  <li><strong>What</strong>: The median timestamp of a sampled window of past blocks</li>
+  <li><strong>Why</strong>: Prevents timestamp manipulation attacks; blocks must have timestamps greater than PMT</li>
+</ul>
+<p><strong>PMT Sample Rate</strong></p>
+<ul>
+  <li><strong>What</strong>: How frequently blocks are sampled for median time calculation (every 10&times;BPS blocks = every 100 blocks at 10 BPS)</li>
+  <li><strong>Why</strong>: Reduces computation at high BPS while maintaining timestamp security</li>
+</ul>
+<p><strong>PMT Averaging Frame</strong></p>
+<ul>
+  <li><strong>What</strong>: The 11 values closest to the center of sorted timestamps used to calculate past median time (post-Crescendo)</li>
+  <li><strong>Why</strong>: Provides more stable timestamp validation than a single median value; averages reduce impact of outliers while maintaining security</li>
+</ul>
+<p><strong>Timestamp Deviation Tolerance</strong></p>
+<ul>
+  <li><strong>What</strong>: The parameter controlling the PMT window size (132 seconds)</li>
+  <li><strong>Why</strong>: Balances protection against timestamp attacks with tolerance for clock skew</li>
+</ul>
+<h3>8. Transaction Rules &amp; Validation</h3>
+<p><strong>Max Transaction Inputs</strong></p>
+<ul>
+  <li><strong>What</strong>: Maximum number of inputs a transaction can have (1,000 post-Crescendo)</li>
+  <li><strong>Why</strong>: Limits mass calculation cost and prevents DoS attacks; soft fork reduction for Crescendo</li>
+</ul>
+<p><strong>Max Transaction Outputs</strong></p>
+<ul>
+  <li><strong>What</strong>: Maximum number of outputs a transaction can have (1,000 post-Crescendo)</li>
+  <li><strong>Why</strong>: Limits mass calculation cost and UTXO set growth</li>
+</ul>
+<p><strong>Max Signature Script Length</strong></p>
+<ul>
+  <li><strong>What</strong>: Maximum size of input signature scripts in bytes (10KB post-Crescendo)</li>
+  <li><strong>Why</strong>: Prevents script engine abuse; aligned with script engine's 10KB limit</li>
+</ul>
+<p><strong>Max Script Public Key Length</strong></p>
+<ul>
+  <li><strong>What</strong>: Maximum size of output script public keys in bytes (10KB post-Crescendo)</li>
+  <li><strong>Why</strong>: Limits compute mass and storage mass calculations; aligned with script engine limits</li>
+</ul>
+<p><strong>Block Mass</strong></p>
+<ul>
+  <li><strong>What</strong>: A measure of block computational cost, limited to 500,000 per block</li>
+  <li><strong>Why</strong>: Prevents blocks from being too expensive to validate, ensuring decentralization</li>
+</ul>
+<p><strong>Mass Per Transaction Byte</strong></p>
+<ul>
+  <li><strong>What</strong>: Mass cost per byte of transaction data (1 mass/byte)</li>
+  <li><strong>Why</strong>: Accounts for bandwidth and storage costs</li>
+</ul>
+<p><strong>Mass Per Signature Operation</strong></p>
+<ul>
+  <li><strong>What</strong>: Mass cost per signature verification (1000 mass/sigop)</li>
+  <li><strong>Why</strong>: Reflects the high computational cost of signature verification</li>
+</ul>
+<p><strong>Storage Mass Parameter</strong></p>
+<ul>
+  <li><strong>What</strong>: Parameter for KIP-0009 storage mass calculation, penalizing UTXO set growth</li>
+  <li><strong>Why</strong>: Incentivizes UTXO consolidation and prevents state bloat</li>
+</ul>
+<p><strong>Transaction Mass Field</strong></p>
+<ul>
+  <li><strong>What</strong>: A field in transactions (post-Crescendo) that must be preserved from GetBlockTemplate and passed back in SubmitBlock</li>
+  <li><strong>Why</strong>: Enables proper mass calculation and validation; blocks with transactions having mass=0 post-Crescendo are invalid</li>
+</ul>
+<p><strong>Coinbase Maturity</strong></p>
+<ul>
+  <li><strong>What</strong>: Number of blocks a coinbase output must wait before being spendable (1,000 blocks post-Crescendo = ~100 seconds at 10 BPS)</li>
+  <li><strong>Why</strong>: Prevents miners from spending rewards from blocks that might be reorganized out of the chain; provides time for consensus to stabilize</li>
+</ul>
+<h3>9. Finality &amp; Pruning System</h3>
+<p><strong>Finality Depth</strong></p>
+<ul>
+  <li><strong>What</strong>: The depth at which blocks are considered finalized and their ordering cannot change (12 hours = 43,200 seconds)</li>
+  <li><strong>Why</strong>: Provides economic finality guarantees; transactions in finalized blocks are irreversible</li>
+</ul>
+<p><strong>Anticone Finalization Depth</strong></p>
+<ul>
+  <li><strong>What</strong>: The depth at which a block's anticone becomes permanently closed, calculated as finality_depth + merge_depth + 4&times;mergeset_limit&times;K + 2&times;K + 2</li>
+  <li><strong>Why</strong>: Ensures the anticone set stabilizes for pruning safety; derived from the prunality proof</li>
+</ul>
+<p><strong>Pruning Depth</strong></p>
+<ul>
+  <li><strong>What</strong>: The depth beyond which old block data can be safely deleted (30 hours = 108,000 seconds)</li>
+  <li><strong>Why</strong>: Allows nodes to discard old data while maintaining security, enabling lightweight nodes and reducing storage requirements</li>
+</ul>
+<p><strong>Finality Score</strong></p>
+<ul>
+  <li><strong>What</strong>: A score calculated from blue score and finality depth used to determine if a block is a pruning sample</li>
+  <li><strong>Why</strong>: Enables efficient identification of pruning samples without examining entire chain history; blocks become samples when their finality score increases</li>
+</ul>
+<p><strong>Pruning Point Candidate</strong></p>
+<ul>
+  <li><strong>What</strong>: A moving block that maintains pruning depth from sink but has the same finality score as current pruning point</li>
+  <li><strong>Why</strong>: Optimizes pruning point search by providing a better starting point than always searching from current pruning point; reduces chain traversal work</li>
+</ul>
+<h3>10. Virtual State &amp; Mining</h3>
+<p><strong>Virtual Block</strong></p>
+<ul>
+  <li><strong>What</strong>: A conceptual block representing the current DAG tip that merges all valid tips</li>
+  <li><strong>Why</strong>: Provides a single canonical view of the current UTXO state for transaction validation and mining</li>
+</ul>
+<p><strong>Sink Block</strong></p>
+<ul>
+  <li><strong>What</strong>: The selected parent of the virtual block, chosen via the sink search algorithm</li>
+  <li><strong>Why</strong>: Ensures the virtual block has valid UTXO state and respects finality constraints</li>
+</ul>
+<p><strong>Virtual Parent Selection</strong></p>
+<ul>
+  <li><strong>What</strong>: Algorithm to choose which tips become virtual parents, respecting mergeset size limits and bounded merge depth</li>
+  <li><strong>Why</strong>: Maximizes DAG connectivity while maintaining validation efficiency and security properties</li>
+</ul>
+<hr>
+<h2>Part III: Implementation Details</h2>
+<p><em>How Kaspa's systems are built and optimized</em></p>
+<h3>11. Post-Crescendo Optimizations</h3>
+<p><strong>Sampled Windows</strong></p>
+<ul>
+  <li><strong>What</strong>: Instead of examining every block, sample blocks at fixed time intervals (4s for difficulty, 10s for median time)</li>
+  <li><strong>Why</strong>: At 10 BPS, examining every block becomes computationally expensive; sampling maintains accuracy while keeping validation costs constant</li>
+</ul>
+<p><strong>Time-Based Depths</strong></p>
+<ul>
+  <li><strong>What</strong>: Finality (12h), pruning (30h), and merge depth (1h) expressed in time units rather than block counts</li>
+  <li><strong>Why</strong>: Ensures consistent security guarantees across different BPS rates; 12 hours provides same economic security whether at 1 BPS or 10 BPS</li>
+</ul>
+<h3>12. Validation Pipeline</h3>
+<p><strong>Header Validation Stages</strong></p>
+<ul>
+  <li><strong>What</strong>: Multi-stage pipeline including pre-GHOSTDAG, GHOSTDAG calculation, pre-POW, POW, and post-POW validation</li>
+  <li><strong>Why</strong>: Enables early rejection of invalid blocks before expensive operations; supports parallel processing of independent blocks in the DAG</li>
+</ul>
+<p><strong>Body Validation Stages</strong></p>
+<ul>
+  <li><strong>What</strong>: Two-phase validation with isolation checks (merkle root, mass limits, double spends) followed by context checks (parent bodies, coinbase subsidy, lock time)</li>
+  <li><strong>Why</strong>: Separates context-free validation from UTXO-dependent validation for efficiency; isolation checks can be performed without accessing chain state</li>
+</ul>
+<h3>13. UTXO Processing</h3>
+<p><strong>UTXO Processing Context</strong></p>
+<ul>
+  <li><strong>What</strong>: A structure containing mergeset diff, multiset hash, accepted tx IDs, acceptance data, and mergeset rewards used during virtual state calculation</li>
+  <li><strong>Why</strong>: Encapsulates all state changes from processing a block's mergeset, enabling efficient parallel validation and state accumulation</li>
+</ul>
+<p><strong>Multiset Hash (MuHash)</strong></p>
+<ul>
+  <li><strong>What</strong>: A cryptographic accumulator tracking the UTXO set state that supports efficient addition/removal operations</li>
+  <li><strong>Why</strong>: Enables compact UTXO set commitments and efficient validation without recomputing entire set; updated incrementally as transactions are processed</li>
+</ul>
+<p><strong>Accepted Transaction Ordering</strong></p>
+<ul>
+  <li><strong>What</strong>: Post-Crescendo, accepted transaction IDs preserve canonical order (pre-Crescendo they were sorted)</li>
+  <li><strong>Why</strong>: Maintains deterministic merkle root calculation while enabling more efficient processing post-fork</li>
+</ul>
+<h3>14. Window Management</h3>
+<p><strong>Window Origin Tracking</strong></p>
+<ul>
+  <li><strong>What</strong>: Windows are tagged as either <code>Full</code> or <code>Sampled</code> origin to prevent cache mixing between pre and post-Crescendo</li>
+  <li><strong>Why</strong>: Ensures correct window type is used for validation; prevents using pre-Crescendo full windows for post-Crescendo sampled calculations</li>
+</ul>
+<p><strong>Dual Window Manager</strong></p>
+<ul>
+  <li><strong>What</strong>: System that switches between <code>FullWindowManager</code> (pre-Crescendo) and <code>SampledWindowManager</code> (post-Crescendo) based on selected parent's DAA score</li>
+  <li><strong>Why</strong>: Enables seamless transition between window calculation methods at fork activation; maintains both managers for backward compatibility</li>
+</ul>
+<p><strong>Mergeset Non-DAA Tracking</strong></p>
+<ul>
+  <li><strong>What</strong>: Set of blocks in the mergeset that are not included in the DAA window (either not sampled or outside window bounds)</li>
+  <li><strong>Why</strong>: Required for correct coinbase reward calculation; red blocks outside DAA window have different reward treatment</li>
+</ul>
+<h3>15. Pruning Point Advancement</h3>
+<p><strong>Pruning Point Candidate</strong></p>
+<ul>
+  <li><strong>What</strong>: A moving block that maintains pruning depth from sink but has the same finality score as current pruning point</li>
+  <li><strong>Why</strong>: Optimizes pruning point search by providing a better starting point than always searching from current pruning point; reduces chain traversal work</li>
+</ul>
+<p><strong>Finality Score Buckets</strong></p>
+<ul>
+  <li><strong>What</strong>: Blocks are grouped into finality score buckets based on <code>blue_score / finality_depth</code></li>
+  <li><strong>Why</strong>: Enables efficient pruning point advancement; new pruning point is found when a block's finality score exceeds previous pruning point's score</li>
+</ul>
+<p><strong>V1 vs V2 Algorithms</strong></p>
+<ul>
+  <li><strong>What</strong>: Pre-Crescendo uses v1 algorithm; post-Crescendo uses v2 with time-based depths; both are validated to be equivalent pre-activation</li>
+  <li><strong>Why</strong>: V2 algorithm handles longer post-Crescendo pruning depths correctly; sanity checks ensure consistency during transition</li>
+</ul>
+<p><strong>Pruning Point Monotonicity</strong></p>
+<ul>
+  <li><strong>What</strong>: Post-Crescendo pruning point advancement maintains monotonicity property despite finality depth increase</li>
+  <li><strong>Why</strong>: Ensures pruning point never moves backward; property holds because new finality depth is multiple of old finality depth</li>
+</ul>
+<h3>16. Performance Optimizations</h3>
+<p><strong>Chain Iterator</strong></p>
+<ul>
+  <li><strong>What</strong>: Forward chain iterator that traverses from one block to another along the selected parent chain</li>
+  <li><strong>Why</strong>: Enables efficient pruning point searches and finality calculations without examining entire DAG; critical for pruning point advancement algorithm</li>
+</ul>
+<p><strong>Reachability Reindexing</strong></p>
+<ul>
+  <li><strong>What</strong>: Periodic reindexing of the reachability data structure when slack accumulates beyond threshold</li>
+  <li><strong>Why</strong>: Maintains query performance as DAG grows; reindex depth and slack parameters balance reindexing cost with query efficiency</li>
+</ul>
+<p><strong>Fork-Aware Cache Sizing</strong></p>
+<ul>
+  <li><strong>What</strong>: Cache sizes use <code>upper_bound()</code> of forked parameters to allocate for worst-case across fork boundaries</li>
+  <li><strong>Why</strong>: Ensures sufficient cache capacity regardless of whether fork has activated; prevents cache thrashing during transition</li>
+</ul>
+<p><strong>Window Cache Byte Budgets</strong></p>
+<ul>
+  <li><strong>What</strong>: Difficulty and median time window caches use <code>after()</code> values for byte calculations to prefer long-term permanent values</li>
+  <li><strong>Why</strong>: Optimizes memory allocation for post-fork state since that's the permanent configuration</li>
+</ul>
+<p><strong>Natural DAG Parallelism</strong></p>
+<ul>
+  <li><strong>What</strong>: Blocks in each other's anticone can be processed concurrently since they have no dependency relationship</li>
+  <li><strong>Why</strong>: Higher BPS creates more parallel blocks, enabling better CPU utilization; dependency tracking delays processing until parent blocks complete</li>
+</ul>
+<h3>17. Network &amp; Sync</h3>
+<p><strong>Orphan Resolution Range</strong></p>
+<ul>
+  <li><strong>What</strong>: P2P layer heuristic that checks if orphan blocks are within retrievable distance using block locator protocol</li>
+  <li><strong>Why</strong>: Prevents unbounded orphan pool growth while enabling recovery of missing ancestors</li>
+</ul>
+<p><strong>IBD Relay Coordination</strong></p>
+<ul>
+  <li><strong>What</strong>: During Initial Block Download, relay flow keeps ~M/2 blocks in orphan pool around IBD trigger point</li>
+  <li><strong>Why</strong>: Ensures smooth transition from IBD to normal sync using DAA score ranges to determine which orphans to keep</li>
+</ul>
+<p><strong>Finality Duration Heuristics</strong></p>
+<ul>
+  <li><strong>What</strong>: IBD uses finality duration to determine if node's consensus has matured enough to reject headers proofs</li>
+  <li><strong>Why</strong>: Prevents spam attacks while allowing legitimate syncing; adjusts to post-Crescendo shorter finality duration only after sufficient time has passed</li>
+</ul>
+<p><strong>Pruning Depth for IBD Type</strong></p>
+<ul>
+  <li><strong>What</strong>: IBD determination uses post-Crescendo pruning depth based on headers selected tip's DAA score</li>
+  <li><strong>Why</strong>: Ensures IBD type selection adapts to the longer post-Crescendo pruning depth for proper sync behavior</li>
+</ul>
+<hr>
+<h2>Appendices</h2>
+<h3>A. Glossary</h3>
+<p><strong>Anticone</strong>: The set of blocks that are neither ancestors nor descendants of a given block (parallel blocks in the DAG)</p>
+<p><strong>Blue/Red Blocks</strong>: Blue blocks don't violate the k-cluster constraint and contribute to consensus ordering; red blocks violate it and are treated as potentially adversarial</p>
+<p><strong>DAA Score</strong>: Difficulty Adjustment Algorithm score; a monotonically increasing counter representing cumulative work in the selected chain</p>
+<p><strong>Mergeset</strong>: The set of blocks merged by a new block, including its parents and anticone blocks (up to limits)</p>
+<p><strong>Virtual State</strong>: The conceptual current tip of the DAG that merges all valid tips, providing canonical UTXO state</p>
+<p><strong>Reachability</strong>: Efficient data structure for answering ancestor/descendant queries in the DAG</p>
+<p><strong>Sink Block</strong>: The selected parent of the virtual block, chosen as the heaviest valid chain tip</p>
+<h3>B. Post-Crescendo Changes Summary</h3>
+<ul>
+  <li><strong>BPS</strong>: 1 &rarr; 10 blocks per second</li>
+  <li><strong>Time-based depths</strong>: Finality (12h), Pruning (30h), Merge depth (1h) now in time units vs block counts</li>
+  <li><strong>Sampled windows</strong>: Difficulty (4s intervals), PMT (10s intervals) instead of examining every block</li>
+  <li><strong>Transaction limits</strong>: Max inputs/outputs reduced from 1 billion to 1,000</li>
+  <li><strong>Script lengths</strong>: Max signature script and script public key reduced to 10KB</li>
+  <li><strong>Mass field</strong>: Required in all transactions, must be preserved from GetBlockTemplate</li>
+  <li><strong>Transaction payloads</strong>: Now supported for non-coinbase transactions</li>
+  <li><strong>Coinbase mass</strong>: Must be set to zero</li>
+  <li><strong>Accepted TX ordering</strong>: Preserves canonical order instead of sorting</li>
+</ul>
+<h3>C. Network Types Comparison</h3>
+<table>
+  <tbody>
+    <tr>
+      <th>Network</th>
+      <th>BPS</th>
+      <th>Crescendo</th>
+      <th>PoW</th>
+      <th>Purpose</th>
+    </tr>
+    <tr>
+      <td>Mainnet</td>
+      <td>10 (post-Crescendo)</td>
+      <td>Active at DAA 110,165,000</td>
+      <td>Enabled</td>
+      <td>Production network with real economic value</td>
+    </tr>
+    <tr>
+      <td>Testnet</td>
+      <td>10 (post-Crescendo)</td>
+      <td>Active at DAA 88,657,000</td>
+      <td>Enabled</td>
+      <td>Public testing without risking real funds</td>
+    </tr>
+    <tr>
+      <td>Simnet</td>
+      <td>10</td>
+      <td>Always active</td>
+      <td>Disabled</td>
+      <td>Fast testing and benchmarking</td>
+    </tr>
+    <tr>
+      <td>Devnet</td>
+      <td>1</td>
+      <td>Disabled by default</td>
+      <td>Enabled</td>
+      <td>Stable development environment</td>
+    </tr>
+  </tbody>
+</table>
+<h3>D. Key Configuration Parameters</h3>
+<ul>
+  <li><strong>RAM Scale</strong>: 0.1-10.0 multiplier for cache sizes (default 1.0)</li>
+  <li><strong>Archival Mode</strong>: Keep all historical data (no pruning)</li>
+  <li><strong>UTXO Index</strong>: Enable address-based UTXO queries</li>
+  <li><strong>Unsafe RPC</strong>: Allow state-modifying RPC commands</li>
+  <li><strong>Enable Unsynced Mining</strong>: Allow mining while not synced (for network bootstrap)</li>
+  <li><strong>Retention Period Days</strong>: Custom pruning policy (days of data to retain)</li>
+  <li><strong>Block Template Cache Lifetime</strong>: Duration to cache mining templates (milliseconds)</li>
+</ul>

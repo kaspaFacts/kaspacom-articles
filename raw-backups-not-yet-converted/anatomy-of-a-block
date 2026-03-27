@@ -1,0 +1,145 @@
+<h2>What is a Kaspa Block?</h2>
+<p>A Kaspa block is a data container consisting of a header and a list of transactions that commits to the <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG?" rel="follow noopener" target="_blank">BlockDAG</a> state and enables parallel block creation. It serves as the fundamental unit of consensus, encoding proof-of-work, DAG topology, and transaction commitments in a compact, immutable structure.</p>
+<h2>The Challenge: Scaling a Blockchain into a BlockDAG</h2>
+<p>Kaspa must achieve high throughput and fast <a href="https://kaspa.com/learn-kaspa/post/finality" title="What is Finality?" rel="follow noopener" target="_blank">finality</a> without sacrificing security or decentralization in a directed acyclic graph (DAG) of blocks. Traditional single-parent chains cannot sustain the required block rates, creating performance bottlenecks and economic pressures that drive mining centralization.</p>
+<p><strong>Single-parent throughput limit</strong>: A linear chain restricts the network to one block per reference interval, creating bottlenecks and encouraging centralization among miners.</p>
+<p><strong>High orphan rates</strong>: Rapid block generation in a chain structure causes many valid blocks to be orphaned, wasting network resources and weakening security.</p>
+<p><strong>Inefficient synchronization</strong>: Nodes replaying entire histories to validate state creates prohibitive bandwidth and storage requirements, limiting participation.</p>
+<p>Kaspa solves these problems with multi-parent headers, mass-based resource limits, and cryptographic commitments (<a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO?" rel="follow noopener" target="_blank">UTXO</a> and accepted transaction IDs) that enable fast sync and parallel block processing.</p>
+<h2>How a Block Works</h2>
+<h2 style="text-align: center;"><img alt="undefined" width="500" height="500" src="https://cdn.buttercms.com/2YOvl8nTQkK12KSqH96r"></h2>
+<h2>The Block Container</h2>
+<p>A block consists of two main parts: a header and a transaction list. The header contains metadata and commitments, while transactions encode state transitions. Blocks exist in mutable form during construction (MutableBlock) and immutable form (Block) when shared across threads.</p>
+<ul>
+  <li><strong>MutableBlock</strong>: Used during <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="Virtual Block for Mining Template creation" rel="follow noopener" target="_blank">mining template</a> creation with mutable header and transactions.</li>
+  <li><strong>Block</strong>: Immutable version with Arc-wrapped header and transactions for cheap cloning.</li>
+  <li><strong>BlockTemplate</strong>: Mining-specific wrapper containing the mutable block plus miner data and fee information.</li>
+</ul>
+<h2>The Header</h2>
+<p><strong>What is the header?</strong> &mdash; The header is a 13-field structure that gets hashed for proof-of-work and commits to all other block data. It encodes DAG topology, difficulty, timing, and cryptographic commitments.</p>
+<p><strong>Why is the header needed?</strong> &mdash; Without a compact header, miners would need to hash entire blocks, making proof-of-work computationally prohibitive. The header-only design enables efficient PoW by committing to transactions via&nbsp;hash_merkle_root while keeping the hashed data minimal. The header enables efficient validation, DAG traversal, and verification of cryptographic commitments to transactions and UTXO state without requiring full block data or historical replay .</p>
+<p><strong>How is the header built?</strong> &mdash; Each field is serialized in a defined order and hashed. The hash is cached for fast access. The header is finalized by recomputing its hash after all fields are set.</p>
+<p><strong>---HASH---</strong></p>
+<p><strong>What is the hash?</strong> &mdash; The block's unique 32-byte identifier computed from all other header fields.</p>
+<p><strong>Why is the hash cached?</strong> &mdash; Looking up blocks by hash is the most common operation; caching avoids recomputing the cryptographic hash repeatedly.</p>
+<p><strong>How is the hash computed?</strong> &mdash; Serialized fields are hashed in order:&nbsp;version &rarr; parents_by_level &rarr; hash_merkle_root &rarr; accepted_id_merkle_root &rarr; utxo_commitment &rarr; timestamp &rarr; bits &rarr; nonce &rarr; daa_score &rarr; blue_score &rarr; blue_work &rarr; pruning_point.</p>
+<p><strong>---VERSION---</strong></p>
+<p><strong>What is version?</strong> &mdash; A 16-bit integer indicating the block format version (currently 1).</p>
+<p><strong>Why does version exist?</strong> &mdash; It allows future protocol upgrades to change block structure while maintaining backward compatibility.</p>
+<p><strong>How is version used?</strong> &mdash; Nodes reject blocks with unknown versions to prevent misinterpretation of new fields.</p>
+<p><strong>---PARENTS_BY_LEVEL---</strong></p>
+<p><strong>What is parents_by_level?</strong> &mdash; A run-length encoded structure encoding <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="Multiple Parents differentiate DAG from Chain" rel="follow noopener" target="_blank">multiple parent blocks</a> across DAG levels, enabling BlockDAG topology.</p>
+<p><strong>Why is it compressed?</strong> &mdash; Many consecutive levels can share the same parent set; Run Length Encoding reduces header size significantly.</p>
+<p><strong>How does it work?</strong> &mdash; Each tuple (cumulative_level_count, parent_hashes) encodes a run of levels with identical parents. Level 0 contains direct parents.</p>
+<p><strong>---HASH_MERKLE_ROOT---</strong></p>
+<p><strong>What is hash_merkle_root?</strong> &mdash; A 32-byte <a href="https://kaspa.com/learn-kaspa/post/kaspa-linking-the-body-to-the-header" title="What is a Merkle Root?" rel="follow noopener" target="_blank">Merkle root</a> committing to all transaction hashes in this block.</p>
+<p><strong>Why is it needed?</strong> &mdash; It enables compact Merkle proofs for transaction inclusion and prevents transaction tampering after mining.</p>
+<p><strong>How is it computed?</strong> &mdash; Transaction hashes (including the <a href="https://kaspa.com/learn-kaspa/post/storage-mass-kip-0009" title="What is Storage Mass?" rel="follow noopener" target="_blank">storage mass</a> commitment) are hashed into a binary Merkle tree.</p>
+<p><strong>---ACCEPTED_ID_MERKLE_ROOT---</strong></p>
+<p><strong>What is accepted_id_merkle_root?</strong> &mdash; A commitment to transaction IDs accepted by this block's <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="What is a Mergeset?" rel="follow noopener" target="_blank">mergeset</a>, unique to Kaspa's DAG.</p>
+<p><strong>Why does it exist?</strong> &mdash; In a DAG, blocks merge transactions from other blocks; this field provides cryptographic proof of acceptance.</p>
+<p><strong>How is it computed?</strong> &mdash; It creates a chain of commitments by combining the <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="What is the Selected Parent?" rel="follow noopener" target="_blank">selected parent</a>'s accepted ID root with the Merkle root of transaction IDs newly accepted in this block's mergeset. This builds a running hash chain across the entire DAG history, allowing anyone to prove which transactions from the wider DAG have been definitively accepted without storing all transaction data.</p>
+<p><strong>---UTXO_COMMITMENT---</strong></p>
+<p><strong>What is utxo_commitment?</strong> &mdash; A cryptographic commitment to the entire UTXO set state after applying this block's transactions.</p>
+<p><strong>Why is it needed?</strong> &mdash; It enables fast sync by allowing nodes to verify a received UTXO set without replaying history.</p>
+<p><strong>How is it computed?</strong> &mdash; It uses a <a href="https://kaspa.com/learn-kaspa/post/kaspa-uses-muhash" title="What is MuHash?" rel="follow noopener" target="_blank">MuHash</a> accumulator that maintains a running commitment as UTXOs are added and removed during transaction processing. This special type of hash allows elements to be inserted or deleted in any order while producing the same final result. When all UTXO changes for the block are applied,&nbsp;finalize() converts the accumulator into a 32-byte hash stored in the header.</p>
+<p><strong>---TIMESTAMP---</strong></p>
+<p><strong>What is timestamp?</strong> &mdash; Unix timestamp in milliseconds when the block was created.</p>
+<p><strong>Why milliseconds?</strong> &mdash; Kaspa's high block rate (1-10 BPS) requires millisecond precision for meaningful timing.</p>
+<p><strong>How is it used?</strong> &mdash; This ensures blocks can't travel back in time and helps the network <a href="https://kaspa.com/learn-kaspa/post/daa-window" title="Timestamp for Difficulty Adjustment" rel="follow noopener" target="_blank">adjust mining difficulty</a>.</p>
+<p><strong>---BITS---</strong></p>
+<p><strong>What is bits?</strong> &mdash; A 32-bit compact encoding of the proof-of-work difficulty target.</p>
+<p><strong>Why is it in the header?</strong> &mdash; Being part of the hash pre-image prevents retroactive difficulty reduction.</p>
+<p><strong>How is it calculated?</strong> &mdash; The <a href="https://kaspa.com/learn-kaspa/post/daa-window" title="DAA?" rel="follow noopener" target="_blank">difficulty adjustment algorithm</a> measures how quickly blocks were actually created compared to the expected rate, then adjusts the target proportionally. This encoded target determines how difficult it is to find a valid proof-of-work solution.</p>
+<p><strong>---NONCE---</strong></p>
+<p><strong>What is nonce?</strong> &mdash; A 64-bit value miners iterate to find a valid proof-of-work solution.</p>
+<p><strong>Why 64-bit?</strong> &mdash; High block rates require a larger search space than Bitcoin's 32-bit nonce.</p>
+<p><strong>How is it used?</strong> &mdash; Miners adjust this number until they find a value that makes the block hash small enough to satisfy the difficulty target.</p>
+<p><strong>---DAA_SCORE---</strong></p>
+<p><strong>What is daa_score?</strong> &mdash; A monotonically increasing counter of DAA-included blocks in the block's past.</p>
+<p><strong>Why does it exist?</strong> &mdash; In a DAG, it provides an unambiguous measure of progress for subsidy and lock-time calculations.</p>
+<p><strong>How is it computed?</strong> &mdash; It starts from the selected parent's <a href="https://kaspa.com/learn-kaspa/post/daa-score" title="What is DAA Score?" rel="follow noopener" target="_blank">DAA score</a> and adds the number of blocks in this block's mergeset that are recent enough to be included in difficulty calculations.</p>
+<p><strong>---BLUE_WORK---</strong></p>
+<p><strong>What is blue_work?</strong> &mdash; Cumulative proof-of-work contributed by all blue blocks in the block's past.</p>
+<p><strong>Why is it needed?</strong> &mdash; It's the primary criterion for selecting the selected parent, ensuring canonical ordering.</p>
+<p><strong>How is it computed?</strong> &mdash; It starts from the selected parent's <a href="https://kaspa.com/learn-kaspa/post/blue-work-ordering-pt4" title="Blue Work in more detail." rel="follow noopener" target="_blank">blue work</a> and adds the proof-of-work value (derived from difficulty) of each blue block in this block's mergeset.</p>
+<p><strong>---BLUE_SCORE---</strong></p>
+<p><strong>What is blue_score?</strong> &mdash; A counter of blue blocks in the block's entire past.</p>
+<p><strong>Why differ from daa_score?</strong> &mdash; Blue score counts all blue blocks; daa_score excludes very old blocks in the mergeset.</p>
+<p><strong>How is it computed?</strong> &mdash; &nbsp;It starts from the selected parent's blue score and adds the count of blue blocks in this block's mergeset.</p>
+<p><strong>---PRUNING_POINT---</strong></p>
+<p><strong>What is pruning_point?</strong> &mdash; The hash of the global pruning boundary as seen by the block's miner.</p>
+<p><strong>Why is it in the header?</strong> &mdash; It provides a consensus anchor during IBD, preventing eclipse attacks with fraudulent pruning points.</p>
+<p><strong>How is it determined?</strong> &mdash; Each block declares the pruning point from its perspective; nodes validate consistency.</p>
+<h2>The Transaction List</h2>
+<p><strong>What are transactions?</strong> &mdash; Transactions are state transitions that spend UTXOs (inputs) and create new UTXOs (outputs). The first transaction (index 0) is always the <a href="https://kaspa.com/learn-kaspa/post/coinbase-transactions" title="What is a Coinbase transaction" rel="follow noopener" target="_blank">coinbase</a>.</p>
+<p><strong>Why are transactions structured this way?</strong> &mdash; This structure enables efficient validation, mass calculation, and support for sub-networks while maintaining compatibility with existing tooling.</p>
+<p><strong>How are transactions ordered?</strong> &mdash; Coinbase at index 0, followed by regular transactions. Their hashes are committed in hash_merkle_root.</p>
+<p><strong>---VERSION---</strong></p>
+<p><strong>What is version?</strong> &mdash; A 16-bit integer indicating transaction format version (currently 0).</p>
+<p><strong>Why does it exist?</strong> &mdash; Allows future transaction upgrades while maintaining backward compatibility.</p>
+<p><strong>How is it used?</strong> &mdash; Nodes reject transactions with unknown versions to prevent misinterpretation.</p>
+<p><strong>---INPUTS---</strong></p>
+<p><strong>What are inputs?</strong> &mdash; A list of TransactionInput objects referencing UTXOs to be spent.</p>
+<p><strong>Why are inputs needed?</strong> &mdash; They provide the cryptographic proof of ownership and authorization to spend referenced UTXOs.</p>
+<p><strong>How do inputs work?</strong> &mdash; Each input contains a previous outpoint (txid + index), signature script, sequence, and sig-op count.</p>
+<p><strong>---OUTPUTS---</strong></p>
+<p><strong>What are outputs?</strong> &mdash; A list of TransactionOutput objects creating new UTXOs.</p>
+<p><strong>Why are outputs needed?</strong> &mdash; They define the amount and conditions (script) under which future transactions can spend these UTXOs.</p>
+<p><strong>How are outputs structured?</strong> &mdash; Each output contains a value (in sompi) and a script public key (locking script).</p>
+<p><strong>---LOCK_TIME---</strong></p>
+<p><strong>What is lock_time?</strong> &mdash; A field specifying the earliest time a transaction can be included in a block.</p>
+<p><strong>Why does it exist?</strong> &mdash; It enables time-locked transactions for payment channels and vesting schedules.</p>
+<p><strong>How is it interpreted?</strong> &mdash; If the value is small, it refers to a block count; if large, it refers to a specific calendar time.</p>
+<p><strong>---SUBNETWORK_ID---</strong></p>
+<p><strong>What is subnetwork_id?</strong> &mdash; A 20-byte identifier categorizing the transaction (native, coinbase, registry).</p>
+<p><strong>Why does it exist?</strong> &mdash; It enables Layer-2 sub-networks and partial node validation by routing transactions.</p>
+<p><strong>How is it used?</strong> &mdash; Built-in IDs: native (0x00), coinbase (0x01), registry (0x02). Others can be registered.</p>
+<p><strong>---GAS---</strong></p>
+<p><strong>What is gas?</strong> &mdash; A field reserved for sub-network smart contract execution metering.</p>
+<p><strong>Why is it reserved?</strong> &mdash; Future sub-networks may require gas for computation; native/coinbase transactions use 0.</p>
+<p><strong>How is it calculated?</strong> &mdash; Currently unused; set to 0 for native and coinbase transactions.</p>
+<p><strong>---PAYLOAD---</strong></p>
+<p><strong>What is payload?</strong> &mdash; An arbitrary byte array carrying additional data.</p>
+<p><strong>Why does it exist?</strong> &mdash; Coinbase uses it for metadata; sub-networks use it for smart contract data.</p>
+<p><strong>How is it structured?</strong> &mdash; Empty for native transactions; coinbase has a specific binary layout.</p>
+<p><strong>---MASS---</strong></p>
+<p><strong>What is mass?</strong> &mdash; A commitment to storage mass consumed by the transaction (<a href="https://kaspa.com/learn-kaspa/post/storage-mass-kip-0009" title="KIP-0009 in detail" rel="follow noopener" target="_blank">KIP-0009</a>).</p>
+<p><strong>Why is it needed?</strong> &mdash; Storage mass accounts for long-term UTXO set bloat; transactions creating many small UTXOs pay more.</p>
+<p><strong>How is it computed?</strong> &mdash; This commitment is included when calculating the transaction's hash but not its ID, keeping wallet software compatible.</p>
+<p><strong>---ID---</strong></p>
+<p><strong>What is id?</strong> &mdash; A cached 32-byte transaction identifier.</p>
+<p><strong>Why is it cached?</strong> &mdash; Transaction IDs are frequently referenced; caching avoids recomputation.</p>
+<p><strong>How is it computed?</strong> &mdash; For non-coinbase: hash all fields except signature scripts and mass; for coinbase: include full payload.</p>
+<h3>The Coinbase Transaction</h3>
+<p><strong>What is the coinbase?</strong> &mdash; A special transaction at index 0 with no inputs that creates new KAS (subsidy) and distributes fees.</p>
+<p><strong>Why is it mandatory?</strong> &mdash; It provides the block reward mechanism and fee distribution while carrying essential metadata.</p>
+<p><strong>How is it structured?</strong> &mdash; Its payload follows a precise binary layout: blue_score (8 bytes) + subsidy (8 bytes) + SPK version (2 bytes) + SPK length (1 byte) + script + extra data.</p>
+<h2>How the Network Uses Block Structure</h2>
+<h3>Mining</h3>
+<p>Miners request BlockTemplate objects containing a mutable block, miner data, and fee information. They construct the coinbase payload, select transactions respecting mass limits, and search for a valid nonce/timestamp combination satisfying the difficulty target.</p>
+<p>The template includes selected parent metadata (timestamp, DAA score, hash) to validate the miner's chosen timestamp. Calculated fees ensure proper reward distribution.</p>
+<p>This enables decentralized mining while enforcing consensus rules and preventing reward manipulation.</p>
+<h3>Validation</h3>
+<p>Nodes validate blocks by checking header hash against difficulty, verifying Merkle roots, ensuring mass limits, and validating transactions against the UTXO set. The BlockStatus enum tracks validation stages.</p>
+<p>Header validation includes checking parents_by_level, timestamps, and difficulty. Transaction validation checks signatures, scripts, and mass commitments.</p>
+<p>This layered validation ensures security and consistency across the DAG while enabling efficient processing.</p>
+<h3>Synchronization</h3>
+<p>During Initial Block Download (IBD), nodes use the pruning_point and utxo_commitment to verify received UTXO sets without replaying history. The accepted_id_merkle_root provides efficient inclusion proofs for transaction acceptance.</p>
+<p>Nodes download headers first, then block bodies as needed. The pruning_point defines the finality boundary for safe pruning.</p>
+<p>This enables fast sync and reduced storage requirements while maintaining cryptographic guarantees.</p>
+<h2>Why This Matters</h2>
+<h3>High Throughput</h3>
+<p>Kaspa's block structure supports 10 blocks per second with security via blue_work selection and multi-parent headers. The mass model (500,000 limit) bounds computational and storage requirements for individual blocks while enabling rapid block propagation.</p>
+<h3>Fast Sync</h3>
+<p>UTXO commitments and pruning points enable nodes to sync in minutes by verifying a snapshot rather than replaying years of history. This reduces barriers to running a node.</p>
+<h3>Future-Proofing</h3>
+<p>Version fields and subnetwork routing allow protocol upgrades and Layer-2(or Layer-1.5) development without breaking existing infrastructure. The separation of transaction ID and hash maintains ecosystem compatibility.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Multi-parent headers</strong> - Enable BlockDAG topology and parallel block creation, fundamentally different from single-parent chains.</li>
+  <li><strong>Cryptographic commitments</strong> - Merkle roots, UTXO commitments, and accepted ID roots provide compact proofs and enable fast sync.</li>
+  <li><strong>Mass-based limits</strong> - Replace byte-size limits with a nuanced model accounting for computation, bandwidth, and storage costs.</li>
+  <li><strong>Coinbase structure</strong> - Encodes essential metadata (blue score, subsidy, miner payout) in a standardized binary format.</li>
+  <li><strong>DAG-specific fields</strong> - Blue work, blue score, and DAA score provide consensus metrics unique to Kaspa's parallel block processing.</li>
+</ul>

@@ -1,0 +1,25 @@
+<h2>Intermediate Level - Blue and Red Classification</h2>
+<p>Blue and red classification determines which blocks contribute to consensus security in Kaspa's <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG?" rel="follow noopener" target="_blank">DAG structure</a>.&nbsp; This process ensures network security while maximizing block inclusion.</p>
+<h3>The K-Cluster Foundation</h3>
+<p>The classification uses the k-cluster rule where k represents the maximum <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is Anticone?" rel="follow noopener" target="_blank">Anticone</a> size allowed between blue blocks. &nbsp;Two conditions must be met:</p>
+<ul>
+  <li>The candidate's blue Anticone size cannot exceed k</li>
+  <li>Adding the candidate cannot make any existing blue block's Anticone exceed k</li>
+</ul>
+<h3>Selected Parent as Starting Point</h3>
+<p>Before classification begins, the algorithm finds the <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Selected Parent and the induced Parent Chain" rel="follow noopener" target="_blank">Selected Parent</a> - the parent with highest blue work. &nbsp;This Selected Parent automatically becomes the first blue block and serves as the reference point.</p>
+<p style="text-align: center;"><img alt="SP blue by default.webp" width="900" height="506" src="https://cdn.buttercms.com/vskIvxP3QdOct8jcvOKj"></p>
+<h3>The Classification Process</h3>
+<p>For each candidate block in the <a href="https://kaspa.com/learn-kaspa/post/kaspa-mergeset-creation" title="Mergeset Creation Process" rel="follow noopener" target="_blank">Mergeset</a>, the algorithm applies k-cluster validation. &nbsp;The process walks through the Mergeset, checking relationships with existing blue blocks.&nbsp; In the above image, the blue candidates are green (and are ordered using tiebreaking).</p>
+<p><strong>Blue Path</strong>: Blocks that pass validation are added to the blue set.&nbsp; In the following image, the first blue candidate is checked while k=1.&nbsp; There is only 1 blue block in the anticone of this candidate block, and adding it as a blue block would not cause the existing blue (Selected Parent) have too many blues in its anticone (the blue SP would have 1 blue in its anticone if adding the blue candidate as blue), the blue candidate becomes blue.</p>
+<p style="text-align: center;"><img alt="undefined" width="900" height="506" src="https://cdn.buttercms.com/eVrJIOmURkqe2ZrlVR6m"></p>
+<p><strong>Red Path</strong>: Blocks that would violate k-constraints become red but remain in the DAG.&nbsp; In the following image, we check the next blue candidate (green block from above).&nbsp; This blue candidate already has 2 blue blocks in its Anticone (more than 1), this blue candidate becomes red when k=1.</p>
+<p style="text-align: center;"><img alt="undefined" width="900" height="506" src="https://cdn.buttercms.com/EmH3QBGSC6M053XodiUU"></p>
+<h3>Anticone Size Calculation</h3>
+<p>The system tracks Anticone sizes efficiently by using cached data. &nbsp;This avoids expensive recomputation.</p>
+<h3>K-Cluster Validation Details</h3>
+<p>The validation examines each blue candidate to ensure adding it to the blue set won't violate constraints. &nbsp;Blocks in the past of the candidate are skipped since they're not in its Anticone.</p>
+<h3>The Result</h3>
+<p>The classification produces two sets: blue blocks that contribute to consensus security and red blocks that are preserved but don't affect the main chain. &nbsp;This enables high throughput while maintaining security through the k-cluster rule.</p>
+<h3>Simplified Explanation</h3>
+<p>Blue and red classification sorts blocks into two groups: &nbsp;(blue) "good" blocks that help secure the network and (red) "questionable" blocks that are kept but don't count toward security.&nbsp; The system uses a simple rule - if adding a block would create too many conflicts, it becomes red instead of blue.&nbsp; This way, Kaspa can include more blocks than Bitcoin while still maintaining security by only counting the honest ones.</p>

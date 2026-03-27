@@ -1,0 +1,57 @@
+<h2>What is the Block Processing Pipeline?</h2>
+<p>The Block Processing Pipeline is Kaspa's four-stage architecture for validating and integrating blocks into the blockchain. It processes incoming blocks through sequential stages - Header Validation, Body Validation, Virtual State Computation, and Pruning - enabling parallel processing while maintaining the correct order of operations in the <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG?" rel="follow noopener" target="_blank">blockDAG</a>.</p>
+<h2>The Challenge: Processing Blocks in a DAG</h2>
+<p>In a BlockDAG like Kaspa, blocks can arrive in any order and may reference parents that haven't been processed yet. This creates technical challenges for maintaining Consensus while achieving High Throughput.</p>
+<p>Kaspa's design allows multiple blocks to be created simultaneously, creating a directed acyclic graph rather than a linear chain. This structure enables high transaction throughput but requires multi-stage coordination to ensure all blocks are processed correctly and in the right order.</p>
+<p><strong>Dependency Ordering</strong>: Without proper dependency management, blocks might be processed before their parents, leading to validation failures or incorrect state calculations. The system must track <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="Parents? Children?" rel="follow noopener" target="_blank">parent-child</a> relationships and ensure topological ordering.</p>
+<p><strong>Parallel Processing</strong>: Processing blocks sequentially would limit throughput and fail to leverage Kaspa's DAG advantages. The system needs to validate multiple blocks concurrently while preventing conflicts and race conditions.</p>
+<p><strong>State Consistency</strong>: With multiple processors updating shared data stores, the system must prevent data corruption and ensure all processors work with consistent views of the blockchain state, especially during <a href="https://kaspa.com/learn-kaspa/post/first-order-pruning-in-kaspa" title="Pruning?" rel="follow noopener" target="_blank">pruning</a> operations.</p>
+<p>The pipeline solves these problems by organizing validation into distinct stages, each with specific responsibilities, connected by message queues that maintain ordering while enabling parallel execution. The dependency manager ensures blocks wait for their parents before processing, while specialized locks coordinate access to shared data.</p>
+<h2>How Block Processing Pipeline Works</h2>
+<h3>Stage-Based Architecture</h3>
+<p>The pipeline consists of four sequential stages, each running on dedicated threads with separate message queues. Blocks flow through these stages in order, with each stage performing specific validation and state updates before passing blocks to the next stage.</p>
+<ul>
+  <li><strong>Header Processor</strong>: Validates block headers, computes <a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="What is GHOSTDAG?" rel="follow noopener" target="_blank">GHOSTDAG</a> Ordering data, updates Reachability information, and stores Header-related Metadata</li>
+  <li><strong>Body Processor</strong>: Validates block bodies, checks <a href="https://kaspa.com/learn-kaspa/post/tx-validation" rel="follow noopener">transactions</a> against Consensus rules, and stores Transaction Data</li>
+  <li><strong>Virtual Processor</strong>: Determines the Virtual Block State, finds the best UTXO-valid <a href="https://kaspa.com/learn-kaspa/post/sink-selection" title="What is the Sink?" rel="follow noopener" target="_blank">Sink</a>, and updates the Selected Chain</li>
+  <li><strong>Pruning Processor</strong>: Advances the Pruning Point and removes old block data to Manage Storage</li>
+</ul>
+<p>Each stage maintains its own processing context and works independently, allowing multiple blocks to be processed simultaneously at different stages of validation.</p>
+<h3>Dependency Management</h3>
+<p>The BlockTaskDependencyManager tracks parent-child relationships between blocks and ensures they're processed in topological order. When a block is submitted, the manager checks if all its parents have been processed before allowing it to begin validation.</p>
+<p>For example, if Block C references Parents A and B, it will wait in the dependency queue until both A and B have completed header processing before C can begin. This prevents validation errors and ensures the system always has the necessary context to validate blocks correctly.</p>
+<h3>Message-Based Communication</h3>
+<p>Stages communicate through message queues using different message types for each transition. This design allows stages to operate independently while maintaining proper flow control and backpressure.</p>
+<ol>
+  <li>Blocks enter the pipeline through the Header Processor's input queue</li>
+  <li>Completed Header Validation results are sent to the Body Processor</li>
+  <li>Body Validation results are forwarded to the Virtual Processor</li>
+  <li>Virtual State Changes trigger the Pruning Processor</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Block Validation and Integration</h3>
+<p>When a new block arrives via RPC, P2P network, or mining, it enters the pipeline for complete validation. Each stage performs specific checks, from header validity to transaction correctness, ensuring only valid blocks are integrated into the DAG.</p>
+<p>The pipeline's parallel processing allows multiple blocks to be validated simultaneously, increasing the network's capacity to handle high block rates while maintaining security and correctness.</p>
+<p>This design enables Kaspa to achieve high throughput by processing blocks in parallel rather than sequentially, which is necessary for a system designed to handle many blocks per second.</p>
+<h3>Virtual State Computation</h3>
+<p>The Virtual Processor periodically resolves the Virtual Block State, which represents the current tip of the blockchain for transaction selection and mining. This involves finding the UTXO-valid Sink with the Highest <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Work?" rel="follow noopener" target="_blank">Blue Work</a> and computing the resulting UTXO Set.</p>
+<p>Virtual State calculation formula: Find the block with maximum Blue Work that has a valid UTXO State, then compute the UTXO Set by applying all transactions in the Selected Chain from the previous <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="What is Virtual Block?" rel="follow noopener" target="_blank">Virtual Block</a> to the new Sink.</p>
+<p>This formula ensures the Virtual State always represents the most work-heavy, UTXO-valid chain, providing a consistent view for wallet applications and mining operations.</p>
+<h3>Storage Management</h3>
+<p>The Pruning Processor manages blockchain storage by advancing the <a href="https://kaspa.com/learn-kaspa/post/pruning-depth" title="What is Pruning Point?" rel="follow noopener" target="_blank">Pruning Point</a> and removing old block data. This keeps storage requirements manageable while maintaining enough history for new nodes to sync and validate the chain.</p>
+<p>Pruning Depth is 1,080,000 blocks on mainnet (approximately 30 hours of block data), meaning the node keeps recent history while older blocks are pruned to save space. This balance ensures new nodes can sync efficiently while keeping storage requirements reasonable for node operators.</p>
+<h2>Why This Matters</h2>
+<h3>High Throughput Processing</h3>
+<p>The pipeline's parallel architecture enables Kaspa to process multiple blocks simultaneously, achieving throughput up to the configured <a href="https://kaspa.com/learn-kaspa/post/blocks-per-second" title="Configuring Blocks per Second" rel="follow noopener" target="_blank">block rate</a> (e.g., 10 blocks per second on mainnet). This is necessary for supporting high transaction volumes and fast confirmation times.</p>
+<h3>Scalable Storage Management</h3>
+<p>By separating Pruning into a dedicated stage, the system can efficiently manage storage growth without impacting validation performance. Nodes can operate with <a href="https://kaspa.com/learn-kaspa/post/second-order-pruning" title="How does Kaspa achieve Bounded Storage?" rel="follow noopener" target="_blank">bounded storage requirements</a> while still maintaining full validation capabilities.</p>
+<h3>Robust Consensus</h3>
+<p>The staged validation approach ensures each block receives complete validation before integration, maintaining network security and consensus rules. The dependency management prevents ordering issues that could lead to chain splits or validation failures.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Four-Stage Design</strong> - Blocks progress through Header, Body, Virtual, and Pruning stages, each with specific validation responsibilities</li>
+  <li><strong>Parallel Processing</strong> - Multiple blocks can be processed simultaneously at different stages, enabling high throughput</li>
+  <li><strong>Dependency Management</strong> - The BlockTaskDependencyManager ensures correct topological ordering of block processing</li>
+  <li><strong>Message-Based Communication</strong> - Stages communicate through queues, allowing independent operation while maintaining flow control</li>
+  <li><strong>Storage Efficiency</strong> - Dedicated Pruning stage manages blockchain storage growth without impacting validation performance</li>
+</ul>

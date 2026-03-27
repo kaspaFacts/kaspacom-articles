@@ -1,0 +1,39 @@
+<h1>Kaspa's Finality Depth</h1>
+<h2>What is Finality Depth?</h2>
+<p>Finality Depth is the point where your transactions become permanent and unchangeable in Kaspa. Once a block containing your transaction reaches this depth, it's locked in forever and cannot be reversed or reorganized.</p>
+<h2>The Challenge: Enabling Safe Pruning While Maintaining Security</h2>
+<p>When you send or receive cryptocurrency, you want to know: "When is this transaction truly final?"</p>
+<p>Like Bitcoin, Kaspa uses Proof-of-Work and provides Probabilistic Finality.&nbsp; The more confirmations, the more computationally expensive it becomes for an attacker to reverse the transaction.&nbsp; While this probabilistic approach works for Bitcoin's single-chain structure, Kaspa's parallel block DAG generates far more data that must be managed.</p>
+<p>This is where the Finality Point becomes critical.&nbsp; The Finality Point marks a specific depth where the network can guarantee that blocks will never be reorganized.&nbsp; This guarantee allows Kaspa to safely delete historical block data beyond this point, knowing that no future blocks can ever change what happened before the Finality Point.</p>
+<p>Without this Finality Point, Pruning would be unsafe - the network might delete data that could later be needed to validate.&nbsp; The Finality Point solves this by creating a permanent barrier that enables both Security and Scalability.</p>
+<h2>How Finality Works</h2>
+<h3>Understanding Finality Depth and Finality Point</h3>
+<p>Finality Depth is the network parameter (432,000 blocks at 10 BPS, or 12 hours). Finality Point is calculated for each block - it's the specific ancestor block that is exactly finality_depth blocks behind in the selected chain. As new blocks arrive, each calculates its own finality point, creating a moving boundary that advances with the chain.</p>
+<p><strong>The Key Rule</strong>: No new blocks can reference blocks that would reorganize past any finality point. The network enforces this by rejecting such blocks during validation.</p>
+<h3>Time-Based Security</h3>
+<p>Finality depth is measured in time, not just block count:</p>
+<p>Currently (post-Crescendo activation on 5-5-25), transactions become permanent after 12 hours (432,000 blocks at 10 BPS) .&nbsp; Before Crescendo, the finality period was 24 hours (86,400 blocks at 1 BPS).</p>
+<h3>How the Network Enforces This</h3>
+<p>The network enforces finality through multiple validation layers that work together:</p>
+<p><strong>Filtering Out Violating Blocks</strong></p>
+<p>When the network processes new blocks, it automatically filters out any block that would violate Finality.&nbsp; These blocks are rejected before they can affect the DAG.</p>
+<p><strong>Validating Chain Candidates</strong></p>
+<p>During chain selection, the algorithm verifies each candidate block to ensure it respects the Finality Point.&nbsp; If a block fails this check, it gets rejected with a finality violation warning.</p>
+<p><strong>Preventing Deep Reorganizations</strong></p>
+<p>Additional validation rules ensure that even poorly-connected blocks cannot violate finality.&nbsp; This prevents any attempt to reorganize the chain beyond Finality Depth.</p>
+<h2>Why This Matters</h2>
+<h3>Your Transactions Become Irreversible</h3>
+<p>Once your transaction reaches Finality Depth, it cannot be undone.&nbsp; An attacker would need to control &gt;50% of network hashpower for 12+ hours to reorganize finalized blocks - which is economically infeasible and easily detectable.&nbsp; This gives you absolute certainty that payments you receive are final.</p>
+<h3>The Network Can Safely Prune Old Data</h3>
+<p>Because nothing beyond Finality Depth can change, the network can safely delete old block data without risk.&nbsp; This keeps the blockchain manageable in size while maintaining Security.</p>
+<p>The Pruning system uses finality depth as the foundation of a larger safety formula (finality_depth + merge_depth + (4 &times; mergeset_size_limit &times; k) + (2 &times; k) + 2) that ensures the anticone of chain blocks is permanently closed before pruning. This ensures that only truly finalized data is removed.</p>
+<h3>Protection Against Attacks</h3>
+<p>The Finality Depth creates a moving barrier that protects the entire history of the blockchain.&nbsp; The combination of Proof-of-Work and time-based Finality makes deep reorganizations economically impossible.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Probabilistic Finality like Bitcoin</strong> - uses Proof-of-Work with mathematical Security guarantees</li>
+  <li><strong>12 hours for guaranteed transaction Finality</strong> - after this period, transactions cannot be changed or reversed no matter what</li>
+  <li><strong>Finality enables safe Pruning</strong> - allows the network to delete old data without compromising Security</li>
+  <li><strong>The network actively prevents Finality violations</strong> - blocks that would violate Finality are rejected during processing</li>
+  <li><strong>Enables Scalability</strong> - old data can be deleted without compromising Security</li>
+</ul>

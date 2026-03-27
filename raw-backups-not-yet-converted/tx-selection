@@ -1,0 +1,62 @@
+<h1>Intermediate Level - Transaction Selection Strategies in Kaspa</h1>
+<p>Transaction selection in Kaspa is about choosing the right algorithm for the right congestion level. The system dynamically adapts its selection strategy based on matching the selection complexity to the actual need.</p>
+<h2>The Three-Strategy Framework</h2>
+<p>Kaspa uses three distinct transaction selection strategies, each optimized for different mempool congestion scenarios:</p>
+<h3>1. Complete Selection (Low Congestion)</h3>
+<p><strong>When</strong>: Mempool mass &le; block capacity<br><strong>Strategy</strong>: Take all available transactions<br><strong>Reasoning</strong>: When you can fit everything, selection becomes unnecessary overhead. The optimal strategy is simply to include every transaction, maximizing throughput without any computational cost for prioritization.</p>
+<h3>2. Probabilistic Weighted Selection (Moderate Congestion)</h3>
+<p><strong>When:</strong> Mempool mass is 1-4x block capacity<br><strong>Strategy:</strong> Random weighted selection using (feerate ^ 3) weighting, performed outside the mempool lock<br><strong>Reasoning:</strong> With moderate transaction volumes, the system uses a selection strategy to perform probability-based sampling. &nbsp;This strategy copies all frontier transactions out of the mempool first, then performs weighted random sampling without holding the lock, optimizing for both fairness and performance.&nbsp; Higher-feerate transactions have exponentially higher selection probability, but selection remains probabilistic rather than deterministic.</p>
+<h3>3. Probabilistic Weighted Sampling (Heavy Congestion)</h3>
+<p><strong>When:</strong> Mempool mass &gt; 4x block capacity<br><strong>Strategy:</strong> In-place random sampling with (feerate ^ 3) probability weighting, performed inside the mempool lock<br><strong>Reasoning:</strong> With massive transaction volumes, the system uses a selection strategy&nbsp;to perform weighted random sampling directly on the locked mempool data structure. &nbsp;This in-place approach is efficient because collision rates are low when there are many transactions relative to the sample size. &nbsp;The algorithm handles collisions by narrowing the sampling space and uses sophisticated collision detection to maintain performance even with millions of transactions.</p>
+<h2>The Economic Logic</h2>
+<p>All strategies use (feerate ^ 3) weighting, creating exponential preference for higher-paying transactions.&nbsp; This ensures that:</p>
+<ul>
+  <li><strong>Economic incentives remain strong</strong>: Users who pay more get prioritized</li>
+  <li><strong>Network efficiency is maintained</strong>: Higher fees signal higher transaction urgency</li>
+  <li><strong>Miner revenue is optimized</strong>: Fee-maximizing selection benefits network security</li>
+</ul>
+<h2>The Performance Principle</h2>
+<p>The 4x threshold represents an inflection point where collision probability mathematics favor different approaches:</p>
+<ul>
+  <li><strong>Below 4x</strong>: Selection overhead &gt; sampling efficiency gains</li>
+  <li><strong>Above 4x</strong>: Sampling efficiency gains &gt; selection overhead</li>
+</ul>
+<p>This ensures sub-150&mu;s selection times regardless of mempool size.</p>
+<h2>Why This Approach Works</h2>
+<p><strong>Adaptive Complexity</strong>: The system only uses complex algorithms when necessary, avoiding over-engineering for simple scenarios.</p>
+<p><strong>Economic Consistency</strong>: All strategies maintain feerate-based prioritization, ensuring users' economic incentives remain predictable.</p>
+<p><strong>Performance Scalability</strong>: Selection time remains constant even as the network grows from thousands to millions of transactions.</p>
+<p><strong>Fairness Balance</strong>: Deterministic selection provides fairness in normal conditions, while probabilistic selection prevents system degradation under extreme load.</p>
+<h2>The Result</h2>
+<p>This three-strategy framework ensures that Kaspa's transaction selection remains both economically rational and efficient across all network conditions.&nbsp; Users paying higher fees get prioritized, miners fill blocks with the highest chance of getting paid the most, and the system is optimized so transaction selection is not a bottleneck.</p>
+<h3><strong>Definitions and Concepts</strong></h3>
+<h3>Core Transaction Selection Terms:</h3>
+<ul>
+  <li><strong>Frontier</strong> - The set of transactions with no mempool dependencies, ready for block inclusion</li>
+  <li><strong>Feerate</strong> - Fee per unit mass ratio (fee/mass) measured in sompi/gram</li>
+  <li><strong>Mempool</strong> - The pool of unconfirmed transactions waiting to be included in blocks</li>
+  <li><strong>Mempool Lock</strong> - Read/write lock protecting concurrent access to mempool data structures</li>
+  <li><strong>Block Capacity</strong> - The maximum mass limit that can fit in a single block, used as the threshold for strategy selection</li>
+  <li><strong>Block Template</strong> - The structure containing selected transactions and metadata used for mining new blocks</li>
+</ul>
+<h3>Technical Implementation Terms:</h3>
+<ul>
+  <li><strong>Transaction Weight</strong> - Feerate raised to the power of 3 (feerate^3)</li>
+  <li><strong>Selection Probability</strong> - Transaction weight divided by total frontier weight</li>
+  <li><strong>Mass</strong> - Transaction size measurement in Kaspa (replaces "bytes" from Bitcoin)</li>
+  <li><strong>Sompi</strong> - Smallest unit of KAS currency (like satoshi for Bitcoin)</li>
+  <li><strong>In-Place Sampling</strong> - Weighted random selection performed directly within the locked mempool</li>
+  <li><strong>Collision</strong> - When the same transaction gets randomly selected multiple times during sampling</li>
+  <li><strong>Collision Detection</strong> - The algorithm that identifies when the same transaction is randomly selected multiple times</li>
+  <li><strong>Sampling Space</strong> - The range of weighted transactions from which random selection occurs</li>
+  <li><strong>Selection Overhead</strong> - The computational cost of choosing which transactions to include</li>
+  <li><strong>Consensus Rejections</strong> - When transactions fail validation during block template creation, requiring the system to sample extra transactions</li>
+</ul>
+<h3>Strategy-Specific Terms:</h3>
+<ul>
+  <li><strong>TakeAllSelector</strong> - Deterministic strategy that includes all transactions when they fit</li>
+  <li><strong>RebalancingWeightedTransactionSelector</strong> - Medium congestion strategy using copied transactions</li>
+  <li><strong>SequenceSelector</strong> - Heavy congestion strategy using in-place sampling</li>
+  <li><strong>Collision Factor</strong> - The 4x threshold determining strategy selection</li>
+  <li><strong>Template Transaction Selector</strong> - The interface that different selection strategies implement to provide transactions for block templates</li>
+</ul>

@@ -1,0 +1,30 @@
+<h1>Conceptual Overview of Kaspa</h1>
+<p>Kaspa is a cryptocurrency that uses <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG" rel="follow noopener" target="_blank">BlockDAG</a> technology to achieve high-speed transactions while maintaining Security and Decentralization.&nbsp;</p>
+<h2>Trilemma Solved</h2>
+<p>&bull; <strong>Scalability</strong>: Parallel block creation theoretically removes throughput limitations (Limited only by target hardware and network latency).</p>
+<p>&bull; <strong>Decentralization</strong>: Lower barriers to mining participation through consistent rewards (864,000 blocks per day).</p>
+<p>&bull; <strong>Security</strong>: Maintains Bitcoin-level Security through Proof-of-Work while enabling higher throughput (2500+/sec) and faster transactions (sub-second).</p>
+<h2>Foundation</h2>
+<p>&bull; <strong>BlockDAG Architecture</strong>: Kaspa uses a <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is a DAG" rel="follow noopener" target="_blank">Directed Acyclic Graph</a> (DAG) structure instead of a traditional blockchain, allowing multiple blocks to be created in parallel and reference multiple parents.</p>
+<p>&bull; <strong>GHOSTDAG Consensus Protocol</strong>: Orders blocks in the DAG and classifies them as <a href="https://kaspa.com/learn-kaspa/post/kaspa-blocks-blue-vs-red" title="Blue vs Red Classification (Intermediate Level)" rel="follow noopener" target="_blank">Blue (contributing to Security) or Red (valid but not contributing to Security)</a>.</p>
+<p>&bull; <strong>Unlimited Block Rate Security</strong>: <a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="What is GHOSTDAG" rel="follow noopener" target="_blank">GHOSTDAG</a> remains secure for ANY block creation rate, enabling transaction throughput that is only limited by hardware.</p>
+<h2>How Blocks Are Ordered</h2>
+<p>&bull; <strong>Block Ordering</strong>: GHOSTDAG creates a linear ordering of blocks from the DAG structure for transaction processing.</p>
+<p>&bull; <strong>Security Model</strong>: Blue blocks contribute to Security while Red blocks are still Valid.</p>
+<p>&bull; <strong>Fast Finality</strong>: Transactions achieve <a href="https://kaspa.com/learn-kaspa/post/finality" title="What is Probabilistic Finality" rel="follow noopener" target="_blank">Probabilistic Finality</a> within seconds as confirmations accumulate, with <a href="https://kaspa.com/learn-kaspa/post/finality" title="What is Deterministic Finality" rel="follow noopener" target="_blank">Deterministic Finality</a> at deeper confirmation levels&nbsp;</p>
+<h2>Real World Performance</h2>
+<p>&bull; <strong>10 Blocks Per Second:</strong> Recent Crescendo upgrade increased from 1 to 10 BPS while maintaining Security.</p>
+<p>&bull; <strong>Instant Confirmations:</strong> Sub-second transactions accumulate Confirmations almost instantly.</p>
+<p>&bull; <strong>Throughput:</strong> Multiple simultaneous blocks eliminate network bottlenecks that plague single-chain systems.</p>
+<h2>Transaction Architecture</h2>
+<p>&bull; <strong>UTXO-based</strong>: Uses <a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO" rel="follow noopener" target="_blank">Unspent Transaction Output</a> model for efficient validation.</p>
+<p>&bull; <strong>Programmable Transactions</strong>: Supports scripting for complex transaction logic.</p>
+<p>&bull; <strong>Fast Confirmation</strong>: Parallel processing enables near-instant transaction confirmation.</p>
+<h2>Mining and Fees</h2>
+<p>&bull; <strong>Proof of Work</strong>: Uses a unique ASIC-friendly hash algorithm modified to be distinct from other cryptocurrencies.</p>
+<p>&bull; <strong>Mass-Based Fees</strong>: Transaction fees calculated using a multi-dimensional Mass system considering compute, storage, and network costs for fair pricing.&nbsp;</p>
+<p>&bull; <strong>Consistent Mining Rewards</strong>: 864,000 blocks daily provide predictable income for all miners, reducing dependence on large mining pools.</p>
+<h2>Sustainable Growth</h2>
+<p>&bull; <strong>Automatic <a href="https://kaspa.com/learn-kaspa/post/first-order-pruning-in-kaspa" title="What is Pruning (First Order)" rel="follow noopener" target="_blank">Pruning</a></strong>: Removes old blockchain data while preserving cryptographic security proofs, keeping storage requirements manageable.</p>
+<p>&bull; <strong>Trustless Bootstrap</strong>: New nodes sync quickly using cryptographic proofs instead of downloading complete blockchain history, enabling fast bootstrap <a href="https://kaspa.com/learn-kaspa/post/kaspa-uses-muhash" title="UTXO Commitments Provide Proof" rel="follow noopener" target="_blank">without requiring trust</a>.</p>
+<p>&bull; <strong>Configurable Retention</strong>: Nodes can configure historical data retention based on storage capacity, with archival nodes maintaining complete history.</p>

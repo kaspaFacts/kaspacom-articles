@@ -1,0 +1,66 @@
+<h1>Kaspa's DAA Window</h1>
+<h2>What is the DAA Window?</h2>
+<p>The DAA (Difficulty Adjustment Algorithm) Window is Kaspa's system for keeping mining difficulty balanced as network hashrate changes. It looks at recent blocks to calculate how hard the next block should be to mine, ensuring blocks arrive at a steady pace even when miners join or leave the network.</p>
+<h2>The Challenge: Maintaining Efficiency at High Block Rates</h2>
+<p>When you mine cryptocurrency, the network needs to adjust difficulty to maintain consistent block times.</p>
+<p>Bitcoin checks 2,016 blocks (~2 weeks) to adjust difficulty. This works fine at 1 block per 10 minutes, but Kaspa produces blocks much faster - 10 blocks every second after the Crescendo upgrade.</p>
+<p>At 10 BPS, checking every single block in a 44-minute window would mean processing 26,410 blocks for each difficulty calculation. This would be computationally expensive and slow down the network.</p>
+<p>The DAA Window solves this through Sampling - it only looks at every 40th block, reducing the calculation from 26,410 blocks down to just 661 sampled blocks while maintaining the same 44-minute time coverage.</p>
+<h2>How the DAA Window Works</h2>
+<h3>The Sampling System</h3>
+<p>Post-Crescendo, Kaspa uses a sampled window instead of checking every block:</p>
+<ul>
+  <li><strong>Window size</strong>: 661 sampled blocks</li>
+  <li><strong>Sample rate</strong>: Every 4 seconds (40 blocks at 10 BPS)</li>
+  <li><strong>Time coverage</strong>: ~44 minutes (2,641 seconds)</li>
+</ul>
+<p>The network selects blocks using a simple rule: only blocks whose DAA score is divisible by 40 get included in the window.</p>
+<h3>Difficulty Calculation Process</h3>
+<p>Every new block gets a difficulty calculation, but the calculation uses the sampled window.</p>
+<p>When you mine a new block:</p>
+<ol>
+  <li>The network inherits the 661-sample window from your selected parent block</li>
+  <li>If your block qualifies for sampling (DAA score divisible by 40), it gets added to the window</li>
+  <li>The difficulty calculation uses this window to determine the next block's target</li>
+</ol>
+<h3>The Difficulty Formula</h3>
+<p>The network calculates difficulty by comparing actual time vs. expected time: new_difficulty = average_difficulty * (measured_time / expected_time)</p>
+<ul>
+  <li><strong>Measured time</strong>: Time span between oldest and newest blocks in the window</li>
+  <li><strong>Expected time</strong>: 100ms &times; 40 blocks/sample &times; 661 samples = 2,644 seconds (~44 minutes)</li>
+</ul>
+<p>If blocks arrive faster than expected, difficulty increases. If blocks arrive slower, difficulty decreases.</p>
+<h2>How the Network Uses This</h2>
+<h3>During Block Validation</h3>
+<p>When validating a new block, the network checks that the block's difficulty matches the calculated value:</p>
+<ol>
+  <li>Build the DAA window for the block's GHOSTDAG data</li>
+  <li>Calculate expected difficulty bits from the window</li>
+  <li>Verify the block's difficulty field matches</li>
+  <li>Reject blocks with incorrect difficulty</li>
+</ol>
+<h3>For Reward Distribution</h3>
+<p>The DAA window determines which blocks receive full mining rewards:</p>
+<ul>
+  <li>Blocks <strong>inside the DAA window</strong> (within ~44 minutes): Receive full rewards (coinbase subsidy + transaction fees)</li>
+  <li>Blocks <strong>outside the DAA window</strong> but within merge depth: Receive only transaction fees (no coinbase subsidy)</li>
+</ul>
+<p>This ensures miners are rewarded proportionally to their contribution to network security through difficulty calculation.</p>
+<h2>Why This Matters</h2>
+<h3>Enables 10 Blocks Per Second</h3>
+<p>Without sampling, processing 26,410 blocks for each difficulty calculation would slow down the network significantly. Sampling reduces this to 661 blocks - a 40x improvement - while maintaining accuracy.</p>
+<h3>Maintains Fair Mining</h3>
+<p>The 44-minute window responds quickly to hashrate changes while being long enough to prevent manipulation. An attacker trying to lower difficulty by mining slowly would need to sustain the attack for the entire window duration, which the merge depth bound (1 hour) prevents.</p>
+<h3>Smooth Difficulty Adjustments</h3>
+<p>Every block gets a fresh difficulty calculation based on recent network performance. This means difficulty adjusts dynamically and smoothly rather than in sudden jumps, keeping block times stable even as miners join or leave.</p>
+<h3>Protection Against Attacks</h3>
+<p>The combination of the DAA window (~44 minutes) and merge depth bound (1 hour) prevents attackers from manipulating the network. Blocks can only be merged if they're within the 1-hour window, which isn't enough time to meaningfully manipulate the 661-sample difficulty window.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>661 sampled blocks</strong> - covers 44 minutes of network activity with efficient computation</li>
+  <li><strong>Every 40th block sampled</strong> - reduces processing from 26,410 blocks to 661 samples at 10 BPS</li>
+  <li><strong>Dynamic adjustment</strong> - difficulty recalculates with every new block for smooth transitions</li>
+  <li><strong>Time-based security</strong> - 44-minute window prevents manipulation while responding to real hashrate changes</li>
+  <li><strong>Enables high throughput</strong> - makes 10 BPS computationally feasible without sacrificing accuracy</li>
+  <li><strong>Fair reward distribution</strong> - only blocks that contributed to difficulty calculation receive full rewards</li>
+</ul>

@@ -1,0 +1,166 @@
+<!--   
+KASPA CONSENSUS SYSTEM: COMPLETE LEARNING GUIDE  
+This navigation hub organizes all Kaspa consensus articles by topic area.  
+Each section groups related concepts for easy exploration.  
+-->
+<h1>Kaspa Consensus System: Complete Learning Guide</h1>
+<p>This guide provides comprehensive coverage of Kaspa's GHOSTDAG Consensus System, organized by topic area. Each section groups related concepts together, allowing you to explore specific aspects of the system in depth.</p>
+<h2>How to Use This Guide</h2>
+<p>Browse the sections below to find topics that interest you. Articles are organized by conceptual category rather than difficulty level, so you can jump directly to any area you want to understand. Some concepts appear in multiple sections because they're relevant to different aspects of the system.</p>
+<!-- ==================== FOUNDATIONAL CONCEPTS ==================== -->
+<h2>Foundational Concepts</h2>
+<p>Understanding the basic building blocks of Kaspa's architecture.</p>
+<ol>
+  <li><a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG" rel="follow noopener" target="_blank"><strong>DAG - Directed Acyclic Graph Conceptual Overview</strong></a> - What DAGs are and why Kaspa uses them instead of linear chains</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/dag-terminology" rel="follow noopener" target="_blank" title="Relationships within the DAG"><strong>DAG Terminology</strong></a> - Essential terms: Anticone, Past, Future, Tips, and their precise meanings in Kaspa's context</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" rel="follow noopener" target="_blank" title="Simplified GHOSTDAG"><strong>GHOSTDAG Overview</strong></a> - High-level explanation of how Kaspa orders blocks and achieves consensus</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/ghostdag-k-cluster" title="What is a k-Cluster" rel="follow noopener" target="_blank"><strong>K-Cluster</strong></a> - What constitutes a K-cluster violation and why it's the Security foundation</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/blocks-per-second" title="BPS is all related to everything" rel="follow noopener" target="_blank"><strong>BPS Configuration</strong></a> - Blocks per Second: throughput targets and parameter derivation</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/anatomy-of-a-block" title="Anatomy of a Block" rel="follow noopener" target="_blank"><strong>Anatomy of a Block</strong></a> - What exactly is a Block</li>
+</ol>
+<!-- ==================== CORE DATA STRUCTURES ==================== -->
+<h2>Core Data Structures</h2>
+<p>The fundamental data types that represent blockchain state.</p>
+<ol start="7">
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO" rel="follow noopener" target="_blank"><strong>UTXO - What is that?</strong></a> - Unspent Transaction Outputs and how Kaspa tracks spendable coins</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-uses-muhash" title="What is MuHash" rel="follow noopener" target="_blank"><strong>MuHash - What is that?</strong></a> - Cryptographic commitment for UTXO Set Verification and Pruning</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-linking-the-body-to-the-header" title="What is a Merkle Tree" rel="follow noopener" target="_blank"><strong>Merkle Root and Accepted Merkle Root</strong></a> - Transaction Commitments, linking the Body to the Header</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="What is the difference, Parent vs Mergeset" rel="follow noopener" target="_blank"><strong>Parents and Mergeset</strong></a> - The relationship between a block's direct Parents and its full Mergeset</li>
+</ol>
+<!-- ==================== GHOSTDAG MECHANICS ==================== -->
+<h2>GHOSTDAG Mechanics</h2>
+<p>Deep dive into the consensus algorithm implementation.</p>
+<ol start="11">
+  <li><a href="https://kaspa.com/learn-kaspa/post/k-parameter" title="Setting the k-Parameter" rel="follow noopener" target="_blank"><strong>K Parameter</strong></a> - The Security parameter controlling K-cluster violations</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Selecting a Parent and Ordering the Past" rel="follow noopener" target="_blank"><strong>Parent Selection and Ordering</strong></a> - How the Selected Parent is chosen, the first step<strong></strong></li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-mergeset-creation" title="Create the Mergeset next" rel="follow noopener" target="_blank"><strong>Mergeset Creation</strong></a> - How blocks build their Mergeset from the DAG, the second step</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-blocks-blue-vs-red" title="Classify the blocks, Blue vs Red" rel="follow noopener" target="_blank"><strong>Blue and Red Classification</strong></a> - The coloring Algorithm, the third step</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/blue-work-ordering-pt4" title="Then calculate Blue Work" rel="follow noopener" target="_blank"><strong>Blue Work Calculation</strong></a> - Cumulative metrics for chain selection, the last step</li>
+</ol>
+<!-- ==================== CONSENSUS PARAMETERS ==================== -->
+<h2>Consensus Parameters</h2>
+<p>Configuration values that govern network behavior.</p>
+<ol start="16">
+  <li><a href="https://kaspa.com/learn-kaspa/post/blocks-per-second" title="Configuring BPS and how it relates" rel="follow noopener" target="_blank"><strong>BPS Configuration</strong></a> - Mathematical relationships between BPS and derived parameters</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/k-parameter" title="Security and Scalability through the k-Parameter" rel="follow noopener" target="_blank"><strong>K Parameter</strong></a> - Security parameter and its calculation from BPS</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/mergeset-size-limit" title="Limiting the size of the Mergeset" rel="follow noopener" target="_blank"><strong>Mergeset Size Limit</strong></a> - Maximum Mergeset size constraints</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/merge-depth-bound" title="Limiting the depth to Merge a block" rel="follow noopener" target="_blank"><strong>Merge Depth Bound</strong></a> - Preventing deep reorgs through Depth Constraints</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="Depth limit for Finality" rel="follow noopener" target="_blank"><strong>Finality Depth</strong></a> - When blocks become irreversible</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/daa-window" title="Difficulty Window" rel="follow noopener" target="_blank"><strong>DAA Window</strong></a> - Sliding window for difficulty adjustment</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/pruning-depth" title="Pruning Depth or Anticone Finalization Depth" rel="follow noopener" target="_blank"><strong>Pruning Depth</strong></a> - How far back full block data is required</li>
+  <li><strong>Crescendo Fork Activation</strong> <em>(Coming soon)</em> - How parameters change dynamically at fork activation</li>
+</ol>
+<!-- ==================== BLOCK PROCESSING ==================== -->
+<h2>Block Processing</h2>
+<p>How blocks flow through the validation pipeline.</p>
+<ol start="24">
+  <li><a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="Difference between Parents and Mergeset" rel="follow noopener" target="_blank"><strong>Parents and Mergeset</strong></a> - Block Parent Selection and Mergeset construction</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-mergeset-creation" title="Create a Mergeset" rel="follow noopener" target="_blank"><strong>Mergeset Creation</strong></a> - Detailed Mergeset algorithm</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-blocks-blue-vs-red" title="Classifying Blue vs Red" rel="follow noopener" target="_blank"><strong>Blue and Red Classification</strong></a> - Classification during Block processing</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Selecting a Parent and Ordering the rest" rel="follow noopener" target="_blank"><strong>Parent Selection and Ordering</strong></a> - Selected Parent determination</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is the difference between Blue Score and Blue Work" rel="follow noopener" target="_blank"><strong>Blue Score and Blue Work</strong></a> - Score calculation during processing</li>
+  <li><strong><a href="https://kaspa.com/learn-kaspa/post/block-processing" title="Parallel Processing in Stages" rel="follow noopener" target="_blank">Block Processing Pipeline</a>&nbsp;</strong>- Four-stage architecture: Header &rarr; Body &rarr; Virtual &rarr; Pruning</li>
+</ol>
+<!-- ==================== DIFFICULTY ADJUSTMENT (DAA) ==================== -->
+<h2>Difficulty Adjustment (DAA)</h2>
+<p>How Kaspa maintains consistent block times.</p>
+<ol start="30">
+  <li><a href="https://kaspa.com/learn-kaspa/post/daa-window" title="Difficulty Adjustment Algo Window" rel="follow noopener" target="_blank"><strong>DAA Window</strong></a> - Window construction for difficulty calculation</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/daa-score" title="What is DAA Score" rel="follow noopener" target="_blank"><strong>DAA Score</strong></a> - Block-based timing metric for difficulty adjustment</li>
+  <li><strong>Non-DAA Blocks</strong> <em>(Coming soon)</em> - Blocks excluded from difficulty windows</li>
+</ol>
+<!-- ==================== ANTICONE FINALIZATION & SAFE PRUNING ==================== -->
+<h2>Anticone Finalization &amp; Safe Pruning</h2>
+<p>Mathematical foundations for safe data removal.</p>
+<ol start="33">
+  <li><a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="Relationships in the DAG" rel="follow noopener" target="_blank"><strong>DAG Terminology</strong></a> - Anticone definition and related concepts</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="Finality Depth" rel="follow noopener" target="_blank"><strong>Finality Depth</strong></a> - Finality Guarantees and Depth Calculations</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/merge-depth-bound" title="Merge Depth Bound" rel="follow noopener" target="_blank"><strong>Merge Depth Bound</strong></a> - Depth constraints for Pruning Safety</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/k-parameter" title="k-Parameter" rel="follow noopener" target="_blank"><strong>K Parameter</strong></a> - K's role in Finalization</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/mergeset-size-limit" title="Mergeset Size Limit" rel="follow noopener" target="_blank"><strong>Mergeset Size Limit</strong></a> - Size constraints for Finalization</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/pruning-depth" title="Pruning Depth or Anticone Finalization Depth" rel="follow noopener" target="_blank"><strong>Pruning Depth</strong></a> - Safe Pruning Depth</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/anticone-finalization-depth" title="What is Anticone Finalization Depth" rel="follow noopener" target="_blank"><strong>Anticone Finalization Depth</strong></a> - Mathematical foundation for safe pruning depth</li>
+</ol>
+<!-- ==================== PRUNING SYSTEM ==================== -->
+<h2>Pruning System</h2>
+<p>Managing blockchain data growth.</p>
+<ol start="40">
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-uses-muhash" title="What is MuHash" rel="follow noopener" target="_blank"><strong>MuHash - What is that?</strong></a> - MuHash's role in Pruning</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/anticone-finalization-depth" title="How Anticone Finalization enables Safe Pruning" rel="follow noopener" target="_blank"><strong>Anticone Finalization &amp; Safe Pruning</strong></a> - Complete finalization theory</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/first-order-pruning-in-kaspa" title="What is First Order Pruning" rel="follow noopener" target="_blank"><strong>First Order Pruning</strong></a> - Removing old Block Bodies and Transactions</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/second-order-pruning" title="What is Second Order Pruning" rel="follow noopener" target="_blank"><strong>Second Order Pruning</strong></a> - Removing old Headers while preserving Proof of Work</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/archival-nodes-vs-full-nodes" title="What is a Full Node?" rel="follow noopener" target="_blank"><strong>Archival vs Pruning Nodes</strong></a> - Different node types and Storage Requirements</li>
+</ol>
+<!-- ==================== TRANSACTION PROCESSING ==================== -->
+<h2>Transaction Processing</h2>
+<p>How transactions are validated and included in blocks.</p>
+<ol start="45">
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO" rel="follow noopener" target="_blank"><strong>UTXO - What is that?</strong></a> - UTXO model in Transaction context</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/intro-transaction-selection" title="Transaction Selection - intro" rel="follow noopener" target="_blank"><strong>Transaction Selection (Intro)</strong></a> - Basic Transaction Selection for mining</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/transaction-selection" title="Transaction Selection - intermediate" rel="follow noopener" target="_blank"><strong>Transaction Selection Strategies (Intermediate)</strong></a> - Advanced Transaction Selection</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/daa-window" title="DAA Window" rel="follow noopener" target="_blank"><strong>DAA Window</strong></a> - DAA window's role in Transaction Validation</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/tx-validation" title="Verification of transactions." rel="follow noopener" target="_blank"><strong>Transaction Validation</strong></a> - Three-Phase Validation: Isolation, Header Context, and State Checks&nbsp;</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/transaction-mass" title="What is Transaction Mass?" rel="follow noopener" target="_blank"><strong>Mass Calculation</strong></a> - Compute mass, storage mass, and transient mass</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/coinbase-transactions" title="Coinbase = Subsidy + Fees" rel="follow noopener" target="_blank"><strong>Coinbase Transactions</strong></a>&nbsp;- Special transaction that creates new coins and rewards miners</li>
+</ol>
+<!-- ==================== VIRTUAL STATE ==================== -->
+<h2>Virtual State</h2>
+<p>Kaspa's unique approach to representing the current DAG tip.</p>
+<ol start="52">
+  <li><a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="What is the Virtual Block?" rel="follow noopener" target="_blank"><strong>Virtual Block</strong></a>&nbsp;- The conceptual "current state" block</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/sink-selection" title="What is the Sink Block" rel="follow noopener" target="_blank"><strong>Sink Selection</strong></a>&nbsp;- Finding the highest UTXO-valid block</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/virtual-parents" title="What are Virtual Parents?" rel="follow noopener" target="_blank"><strong>Virtual Parents</strong></a>&nbsp;- Virtual Block parent selection</li>
+  <li><strong>Virtual DAA Score</strong> <em>(Coming soon)</em> - DAA score of the virtual block</li>
+</ol>
+<!-- ==================== TIMESTAMPS & MEDIAN TIME ==================== -->
+<h2>Timestamps &amp; Median Time</h2>
+<p>Timestamp consensus and validation.</p>
+<ol start="56">
+  <li><a href="https://kaspa.com/learn-kaspa/post/past-median-time" title="What is Past Median Time" rel="follow noopener" target="_blank"><strong>Past Median Time</strong></a> - Timestamp Validation Via Sampled Windows</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/timestamp-validation" title="Rules for ensuring Time is consistent" rel="follow noopener" target="_blank"><strong>Timestamp Validation</strong></a> - Keeping time in a Decentralized environment</li>
+</ol>
+<!-- ==================== NETWORK & SCALING ==================== -->
+<h2>Network &amp; Scaling</h2>
+<p>Why Kaspa's architecture enables high throughput.</p>
+<ol start="58">
+  <li><a href="https://kaspa.com/learn-kaspa/post/kaspa-and-the-bitcoin-scaling-problem" title="What is the &quot;Bitcoin Scaling Problem&quot;" rel="follow noopener" target="_blank"><strong>Bitcoin Scaling Problem</strong></a> - Traditional blockchain limitations</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/blocks-per-second" title="BPS and how it affects everything" rel="follow noopener" target="_blank"><strong>BPS Configuration</strong></a> - High throughput configuration</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/k-parameter" title="k-Parameter - Secure Scalability" rel="follow noopener" target="_blank"><strong>K Parameter</strong></a> - K's role in network Security at Scale</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/merge-depth-bound" title="Merge Depth Bound" rel="follow noopener" target="_blank"><strong>Merge Depth Bound</strong></a> - Preventing reorgs in high-throughput networks</li>
+</ol>
+<!-- ==================== FINALITY & SECURITY ==================== -->
+<h2>Finality &amp; Security</h2>
+<p>Understanding Kaspa's Security Guarantees.</p>
+<ol start="62">
+  <li><a href="https://kaspa.com/learn-kaspa/post/k-parameter" title="k-Parameter" rel="follow noopener" target="_blank"><strong>K Parameter</strong></a> - K's Security Properties</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/merge-depth-bound" title="Merge Depth Bound" rel="follow noopener" target="_blank"><strong>Merge Depth Bound</strong></a> - Depth-based Security</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/mergeset-size-limit" title="Mergeset Size Limit" rel="follow noopener" target="_blank"><strong>Mergeset Size Limit</strong></a> - Size-based Security constraints</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/daa-window" title="DAA Window" rel="follow noopener" target="_blank"><strong>DAA Window</strong></a> - DAA's role in Security</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="Finality Depth" rel="follow noopener" target="_blank"><strong>Finality Depth</strong></a> - Finality guarantees</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/pruning-depth" title="Pruning Depth or the Anticone Finalization Depth" rel="follow noopener" target="_blank"><strong>Pruning Depth (Anticone Finalization Depth)</strong></a> - Pruning Safety guarantees</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/finality" title="Different types of Finality in Kaspa" rel="follow noopener" target="_blank"><strong>Probabilistic and Deterministic Finality</strong></a> - Two types of Finality in Kaspa</li>
+</ol>
+<!-- ==================== KIPs ==================== -->
+<h2>KIPs</h2>
+<p>Kaspa Improvement Proposals.</p>
+<ol start="69">
+  <li><a href="https://kaspa.com/learn-kaspa/post/storage-mass-kip-0009" title="Storage Mass addressing State Bloat" rel="follow noopener" target="_blank"><strong>KIP-0009</strong></a> - KIP-9 Mitigating State Bloat</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kip-20" title="Covenant ID's" rel="follow noopener" target="_blank"><strong>KIP-0020</strong></a> - KIP-20 Covenant ID for native covenant tracking</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/kip-21" title="Changing the transaction commitment for the future" rel="follow noopener" target="_blank"><strong>KIP-0021</strong></a> - KIP-21 Partitioned Sequencing Commitment</li>
+</ol>
+<!-- ==================== Smart Contracts ==================== -->
+<h2>Smart Contracts</h2>
+<p>Smart Contracts.</p>
+<ol start="72">
+  <li><a href="https://kaspa.com/learn-kaspa/post/opcodes" title="OpCodes for Spending Conditions" rel="follow noopener" target="_blank"><strong>OpCodes</strong></a> - Enabling Covenants</li>
+  <li><a href="https://kaspa.com/learn-kaspa/post/smart-contracts" title="An overview of Smart Contracts" rel="follow noopener" target="_blank"><strong>Smart Contracts</strong></a> - Current, Proposed, and Future Smart Contracts</li>
+</ol>
+<!-- ==================== DAGKNIGHT ==================== -->
+<h2>DAGKNIGHT</h2>
+<p>DAGKNIGHT</p>
+<ol start="74">
+  <li><a href="https://kaspa.com/learn-kaspa/post/dagknight" title="An overview of DAGKNIGHT" rel="follow noopener" target="_blank"><strong>DAGKNIGHT</strong></a> - What is the big deal?</li>
+</ol>
+<!-- ==================== QUICK REFERENCE ==================== -->
+<h2>Notes</h2>
+<p>This categorical structure groups related concepts together, making it easier to find specific topics. Some articles appear in multiple categories (like K Parameter, BPS Configuration) because they're relevant to multiple aspects of the system - this is intentional and helps readers understand connections.</p>

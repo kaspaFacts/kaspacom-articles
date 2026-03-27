@@ -1,0 +1,54 @@
+<h1>Intermediate Level - K Parameter</h1>
+<p>The k parameter is a magic number, but what exactly is k, why is it required, and how is it determined?</p>
+<h2>The K Parameter Foundation</h2>
+<p>The k parameter is a fundamental security parameter in <a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="GHOSTDAG Simplified" rel="follow noopener" target="_blank">GHOSTDAG</a> that defines the maximum allowed Blue <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="DAG Terms" rel="follow noopener" target="_blank">Anticone </a>size. &nbsp;It serves as a critical security constraint that prevents k-cluster violations by limiting the maximum number of conflicting <a href="https://kaspa.com/learn-kaspa/post/blue-work-ordering-pt4" title="What do Blue Blocks Represent" rel="follow noopener" target="_blank">Blue Blocks</a> that can exist in any block's Anticone, ensuring network integrity while enabling parallel block processing and maintaining optimal network security with high throughput.</p>
+<h2>Anticone Size Probability Constraint</h2>
+<p>The k parameter is calculated using a probabilistic formula that ensures Anticones larger than k occur with probability less than a specified threshold &delta; (delta).&nbsp; With Kaspa, it is set so that the probability of Anticones larger than k occur less than 1% of the time.</p>
+<h3>The Core Equation</h3>
+<p>The calculation follows equation 1 from section 4.2 of the PHANTOM GHOSTDAG paper, where k is the minimal value such that:</p>
+<p>P(anticone size &gt; k) &lt; &delta;</p>
+<p>Or... The probability of Anticones greater than k is less than delta (1%)</p>
+<p>This is computed iteratively using the Poisson distribution, meaning plug in each possible k value (starting at 0) until we get an output of less than 1%.</p>
+<h3>Input Parameters and Their Reasoning</h3>
+<p><strong>Network Delay Parameter (x = 2D&lambda;):</strong></p>
+<ul>
+  <li>D represents the maximal network delay (max time to propagate a block to every node)</li>
+  <li>&lambda; represents the block mining rate (blocks per second)</li>
+  <li>The factor of 2 accounts for the round-trip (or more accurately "-t")</li>
+  <li>This parameter captures the fundamental relationship between network latency and block production rate</li>
+</ul>
+<p><strong>Security Threshold (&delta;):</strong></p>
+<ul>
+  <li>Represents the acceptable probability of k-cluster violations</li>
+  <li>Typically set to a small value (Kaspa uses 0.01 or 1%)</li>
+  <li>Lower values provide higher security but require larger k values</li>
+  <li>This threshold directly impacts the security guarantees of the consensus protocol</li>
+</ul>
+<h2>The Calculation Process</h2>
+<p>The k parameter determination happens through iterative probability calculation using the Poisson distribution:</p>
+<h3>Step 1: Set Starting Point</h3>
+<p>The algorithm begins with k=0 and calculates a starting probability value based on the network conditions. &nbsp;(Using x as an input, where x = 2D&lambda;)</p>
+<h3>Step 2: Test Each k Value</h3>
+<p>For each possible k value (0, 1, 2, 3...), the algorithm calculates the probability of having that many conflicting blocks.&nbsp; It builds up a running total of these probabilities, checking how likely different Anticone sizes are to occur.</p>
+<h3>Step 3: Find the Security Sweet Spot</h3>
+<p>The algorithm looks for the point where the chance of having more than k conflicting blocks drops below &delta; (delta), in Kaspa delta is 1%.&nbsp; Once it finds this threshold, that becomes the chosen k value.</p>
+<p><strong>Why This Approach Works:</strong></p>
+<ul>
+  <li>Uses mathematical shortcuts to avoid complex calculations</li>
+  <li>Incrementally builds up the probability picture</li>
+  <li>Stops when it reaches the desired security level (99% confidence that Anticones won't exceed k)</li>
+</ul>
+<h2>Network-Specific K Values</h2>
+<p>Different network configurations require different k values based on their block production rates.</p>
+<p>Higher throughput networks (more blocks per second) require proportionally larger k values to maintain the same security level, as faster block production increases the likelihood of simultaneous block creation and larger Anticones.</p>
+<h2>Security Implications</h2>
+<p>The k parameter directly affects network security by controlling the maximum size of conflicting block sets.&nbsp; A properly calculated k ensures that:</p>
+<ul>
+  <li>Honest blocks maintain consensus despite network delays</li>
+  <li>Attackers cannot exploit parallelism to break consensus</li>
+  <li>The network can process high transaction volumes safely</li>
+</ul>
+<h2>The Result</h2>
+<p>Proper k parameter calculation produces a security constraint that maintains protocol integrity while enabling high-throughput parallel processing.&nbsp; The mathematical foundation ensures that even under adverse network conditions, the probability of consensus violations remains below acceptable thresholds.</p>
+<h2>Simplified Explanation</h2>
+<p>The k parameter is like a "safety buffer" calculated using network speed and desired security level.&nbsp; By considering how long messages take to travel across the network and how fast blocks are created, the formula determines the maximum number of conflicting blocks that can safely coexist while keeping the chance of security problems below an acceptable threshold.</p>

@@ -1,0 +1,57 @@
+<h1>Kaspa's BPS Configuration</h1>
+<h2>What is BPS Configuration?</h2>
+<p>BPS (Blocks Per Second) Configuration is Kaspa's system for scaling all consensus parameters based on the network's block production rate. It ensures that security parameters like finality depth, merge depth, and GHOSTDAG K scale proportionally when the network transitions from 1 block per second to 10 blocks per second.</p>
+<h2>The Challenge: Maintaining Security Across Different Block Rates</h2>
+<p>When you increase a blockchain's block production rate, you can't simply speed up block creation without adjusting security parameters.</p>
+<p>Kaspa's Crescendo hardfork increased the block rate from 1 BPS to 10 BPS. Without proper parameter scaling, this would create severe security and operational problems.</p>
+<p><strong>Broken Time-Based Security</strong>: Security parameters like finality depth (12 hours) and merge depth (1 hour) are defined in time units, not block counts. At 1 BPS, 12 hours = 43,200 blocks. At 10 BPS, 12 hours = 432,000 blocks. Without scaling, the network would use the wrong depth values.</p>
+<p><strong>Insufficient Anticone Tolerance</strong>: The GHOSTDAG K parameter must scale with block rate to maintain the same probability of anticones exceeding K. At 1 BPS, K=18 provides 99% confidence. At 10 BPS, K must increase to 124 to maintain the same security level.</p>
+<p><strong>Incompatible DAA Windows</strong>: The difficulty adjustment window must cover the same time duration regardless of BPS. At 1 BPS, this requires 2,641 blocks. At 10 BPS with sampling, this requires 661 sampled blocks (every 40 blocks).</p>
+<p>BPS Configuration solves all these problems by providing a unified system that calculates all consensus parameters as functions of the BPS value, ensuring security properties remain constant across different block rates.</p>
+<h2>How BPS Configuration Works</h2>
+<h3>Time-Based Parameter Scaling</h3>
+<p>BPS Configuration converts time-based security parameters into block counts by multiplying the time duration (in seconds) by the BPS value.</p>
+<ul>
+  <li><strong>Finality Depth</strong>: BPS &times; 43,200 seconds (12 hours) = 432,000 blocks at 10 BPS</li>
+  <li><strong>Merge Depth</strong>: BPS &times; 3,600 seconds (1 hour) = 36,000 blocks at 10 BPS</li>
+  <li><strong>Target Time Per Block</strong>: 1000 milliseconds / BPS = 100ms at 10 BPS</li>
+</ul>
+<p>This ensures that security guarantees remain constant in real-world time, regardless of how fast blocks are produced.</p>
+<h3>GHOSTDAG K Calculation</h3>
+<p>The K parameter is calculated using the formula from the GHOSTDAG paper to ensure anticones larger than K occur with less than 1% probability.</p>
+<p>The calculation uses x = 2D&lambda; where D is network delay (5 seconds) and &lambda; is the block rate. At 10 BPS: x = 2 &times; 5 &times; 10 = 100, which yields K=124.</p>
+<h3>Derived Parameter Calculation</h3>
+<p>Once BPS and K are known, other parameters are calculated as functions of these values.</p>
+<ol>
+  <li>Mergeset Size Limit = 2 &times; K (capped between 180-512) = 248 at 10 BPS</li>
+  <li>Max Block Parents = K / 2 (capped between 10-16) = 16 at 10 BPS</li>
+  <li>Pruning Depth = max(anticone_finalization_depth, BPS &times; 108,000 seconds)</li>
+  <li>Sample Rates = BPS &times; sample_interval for DAA and median time windows</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Fork Activation and Parameter Selection</h3>
+<p>The network uses ForkedParam structures to maintain both pre-Crescendo (1 BPS) and post-Crescendo (10 BPS) parameter values.</p>
+<p>When processing a block, the consensus system checks the DAA score to determine which parameter set to use. If the DAA score is above the Crescendo activation threshold, 10 BPS parameters apply; otherwise, 1 BPS parameters apply.</p>
+<p>This allows the network to transition smoothly from 1 BPS to 10 BPS at a specific block without requiring all nodes to upgrade simultaneously.</p>
+<h3>Anticone Finalization Depth Formula</h3>
+<p>BPS Configuration enables the anticone finalization depth calculation, which determines when blocks can be safely pruned.</p>
+<p>anticone_finalization_depth = finality_depth + merge_depth + (4 &times; mergeset_size_limit &times; k) + (2 &times; k) + 2</p>
+<p>At 10 BPS: 432,000 + 36,000 + (4 &times; 248 &times; 124) + (2 &times; 124) + 2 = 591,194 blocks. This represents approximately 16.4 hours of blocks, ensuring sufficient depth for safe pruning.</p>
+<h3>Simulation and Testing</h3>
+<p>The simpa simulator uses BPS Configuration to test consensus at different block rates. It can simulate any BPS value by calculating appropriate K values and scaling all time-based parameters accordingly.</p>
+<p>For example, simpa can test 8 BPS by calculating K=102 and scaling finality depth to 345,600 blocks. This allows developers to verify that security properties hold at different block rates.</p>
+<h2>Why This Matters</h2>
+<h3>Enables the Crescendo Hardfork</h3>
+<p>BPS Configuration is what made the 10x throughput increase possible. Without it, the network couldn't safely transition from 1 BPS to 10 BPS while maintaining the same security guarantees. All security parameters scale automatically, ensuring 12-hour finality and 1-hour merge depth remain constant in real time.</p>
+<h3>Future-Proofs the Protocol</h3>
+<p>The BPS Configuration system supports block rates from 1 BPS to 32 BPS with pre-computed K values. This means future hardforks could increase throughput further without requiring fundamental protocol changes. The same formulas and scaling logic would apply at any supported BPS value.</p>
+<h3>Maintains Security Guarantees</h3>
+<p>By scaling all parameters proportionally, BPS Configuration ensures that security properties remain constant regardless of block rate. The probability of anticones exceeding K stays below 1%, finality depth remains 12 hours, and merge depth remains 1 hour. Users experience the same security level at 10 BPS as they did at 1 BPS.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Scales all parameters with BPS</strong> - finality depth, merge depth, K, mergeset limit all scale proportionally</li>
+  <li><strong>Time-based security</strong> - converts time durations (hours) into block counts based on BPS</li>
+  <li><strong>Fork-aware</strong> - maintains separate parameter sets for pre/post-Crescendo using DAA score</li>
+  <li><strong>Mathematically derived</strong> - K calculated from GHOSTDAG paper formula, other parameters derived from K</li>
+  <li><strong>Enables 10 BPS</strong> - made the Crescendo hardfork possible while maintaining security guarantees</li>
+</ul>

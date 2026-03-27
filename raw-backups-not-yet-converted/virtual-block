@@ -1,0 +1,57 @@
+<h1>Virtual Block</h1>
+<h2>What is Virtual Block?</h2>
+<p>A Virtual Block is Kaspa's way of representing the current state of the blockchain as a single conceptual block, even though the network uses a <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG?" rel="follow noopener" target="_blank">BlockDAG </a>structure with multiple parallel blocks. It's a computed snapshot that aggregates information from all current DAG tips to provide a consistent view of the network's state. This snapshot is maintained and updated as the DAG evolves.</p>
+<h2>The Challenge: Managing a BlockDAG</h2>
+<p>In traditional blockchains, there's always a single "current tip" that represents the latest state. Kaspa's BlockDAG design allows multiple blocks to be created simultaneously, which creates several fundamental challenges for maintaining consensus and state.</p>
+<p>Kaspa's parallel block structure means the network needs a way to determine which transactions are confirmed, what the current difficulty should be, and how miners should build the next block when there are multiple valid tips to choose from.</p>
+<p><strong>Chain State Ambiguity</strong>: Without a single reference point, it's unclear which transactions are confirmed and what the current <a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO?" rel="follow noopener" target="_blank">UTXO</a> set should be, making it impossible for wallets to show balances or for miners to build valid blocks.</p>
+<p><strong>Difficulty Calculation Confusion</strong>: With multiple block tips, the network needs a consistent way to calculate mining difficulty that all nodes can agree on, despite having different views of the DAG.</p>
+<p><strong>Mining Direction Uncertainty</strong>: Miners need clear guidance on which blocks to use as parents when creating new blocks, otherwise the network could fragment into incompatible chains.</p>
+<p>The Virtual Block solves all these problems by creating a single representation of the network's current state that all nodes can agree on, regardless of the underlying DAG complexity.</p>
+<h2>How Virtual Block Works</h2>
+<h3>The Sink: Virtual Selected Parent</h3>
+<p>The Virtual Block's most important component is its "Sink" - the <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Selected Parent induces a Selected Parent Chain" rel="follow noopener" target="_blank">Selected Parent</a> that represents the highest-scoring valid block in the current DAG. This Sink acts as the primary chain tip that all other operations reference.</p>
+<ul>
+  <li><strong>Blue Work Priority</strong>: The Sink is chosen based on the highest <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Work?" rel="follow noopener" target="_blank">Blue Work</a> among current tips</li>
+  <li><strong>UTXO Validation</strong>: Only blocks with valid UTXO state can become the Sink</li>
+  <li><strong>Finality Compliance</strong>: The Sink must respect <a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="What is Finality Depth?" rel="follow noopener" target="_blank">Finality</a> constraints to ensure network stability</li>
+</ul>
+<p>The Sink Search Algorithm ensures that only valid blocks become the Virtual Selected Parent, maintaining Consensus.</p>
+<h3>Virtual Parents Selection</h3>
+<p>Beyond the Sink, the Virtual Block includes additional parent blocks from the current DAG tips to incorporate parallel work into the consensus state.</p>
+<p>For example, when there are many candidate blocks, the system might select 16 parents: the Sink plus 15 additional high-scoring blocks from different parts of the DAG.</p>
+<h3>State Aggregation</h3>
+<p>The Virtual Block combines information from all its Parents to create a unified state representation.</p>
+<ol>
+  <li>The network identifies all current DAG tips</li>
+  <li>The Sink Search Algorithm finds the highest-scoring valid block</li>
+  <li>Additional Virtual Parents are selected from remaining tips</li>
+  <li>UTXO changes from all parents are aggregated</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Mining Block Templates</h3>
+<p>Miners use the Virtual Block State to build new blocks that will be accepted by the network. The Virtual State provides the Parents, <a href="https://kaspa.com/learn-kaspa/post/daa-window" title="What is Difficulty Window for calculating Difficulty Target?" rel="follow noopener" target="_blank">Difficulty Target</a>, and UTXO context needed for valid block construction.</p>
+<p>This ensures all miners are working from the same network state, preventing orphan blocks and maintaining consensus. The block template includes the Virtual Parents as the new block's parents, transactions validated against the Virtual UTXO set, and difficulty calculated from the Virtual State.</p>
+<p>This matters because it prevents mining waste and ensures network Security through coordinated mining efforts.</p>
+<h3>Transaction Validation</h3>
+<p>The Virtual Block's UTXO state serves as the reference for validating new transactions. When a transaction is submitted to the mempool, it's checked against the Virtual UTXO set to ensure it spends valid outputs.</p>
+<p>Validation formula: Check if transaction inputs exist in Virtual UTXO set AND verify signatures</p>
+<p>This formula means every transaction must spend existing, unspent outputs and be properly signed to be valid.</p>
+<h3>Network Information Services</h3>
+<p>RPC interfaces expose Virtual Block information to external applications like block explorers and wallets. The Virtual State provides the current sink hash, block counts, difficulty, and other network metrics that applications need to display accurate information to users.</p>
+<p>For example, a wallet can query the Virtual State to show a user their current balance with confidence that it reflects the network's agreed-upon state.</p>
+<h2>Why This Matters</h2>
+<h3>Consistent Network State</h3>
+<p>The Virtual Block ensures all nodes in the network agree on the current state, even when they have slightly different views of the underlying DAG. This consistency is crucial for maintaining consensus and preventing chain splits.</p>
+<h3>Efficient Mining Operations</h3>
+<p>By providing clear guidance on which blocks to use as parents and what difficulty target to aim for, the Virtual Block enables efficient mining operations. Miners don't need to analyze the entire DAG - they can simply query the Virtual State and start building valid blocks.</p>
+<h3>Simplified Application Development</h3>
+<p>External applications can interact with Kaspa as if it were a traditional blockchain, querying the Virtual State for balances, transaction confirmations, and network metrics. This abstraction dramatically simplifies wallet and exchange development while preserving Kaspa's high-performance benefits.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Virtual Block is Conceptual</strong> - It's a computed state, not a real block stored in the database</li>
+  <li><strong>Sink is the Key</strong> - The Selected Parent (Sink) represents the primary chain tip for all operations</li>
+  <li><strong>Enables Parallel Processing</strong> - Allows Kaspa to benefit from parallel block creation while maintaining consistency</li>
+  <li><strong>Foundation for Mining</strong> - Provides the authoritative state that miners use to build new blocks</li>
+  <li><strong>Abstraction Layer</strong> - Simplifies complex BlockDAG operations into a single reference point for applications</li>
+</ul>

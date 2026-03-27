@@ -1,0 +1,34 @@
+<h1>Introductory Level - DAG Terminology</h1>
+<p>Past, Future, Anticone, Mergeset, K parameter, what does it all mean?</p>
+<p>Past, Future, and Anticone are DAG terms, while Mergeset and K are used in GHOSTDAG.</p>
+<p><a href="https://www.kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG - used by Kaspa" rel="follow noopener" target="_blank">DAG</a> terminology is a specialized vocabulary for describing relationships in a BlockDAG structure.&nbsp; We start with Linear Chain, DAG, and then a touch of GHOSTDAG.</p>
+<h2>Linear Chain Terminology - Traditional Blockchain</h2>
+<p>Linear chain terminology uses simple concepts where blocks form a single sequence.&nbsp; Each block has one parent and potentially one child, creating straightforward ancestor-descendant relationships.&nbsp; Terms like "height," "previous block," and "next block" describe the linear progression.&nbsp; When conflicts occur, blocks are either "accepted" into the main chain or "orphaned" and discarded.</p>
+<p style="text-align: center;"><img alt="undefined" width="900" height="506" src="https://cdn.buttercms.com/ztcWf0UT4ysiEhzt0WSE"></p>
+<h2>DAG Terminology -</h2>
+<p>Allowing blocks to have multiple parents creates new relationships within the <a href="https://www.kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG - used by Kaspa" rel="follow noopener" target="_blank">DAG</a>.</p>
+<p style="text-align: center;"><img alt="kaspa DAG.webp" width="900" height="506" src="https://cdn.buttercms.com/P31XzHa9RySKXmCLTazx"></p>
+<h2>Past and Future Relationships - DAG</h2>
+<p>Past relationship defines all blocks reachable by following parent links backward from a given block.&nbsp; A block is in the past of another if there exists any directed path connecting them.&nbsp; Future relationship works inversely - if block A is in the past of block B, then B is in the future of A.</p>
+<p style="text-align: center;"><img alt="undefined" width="900" height="506" src="https://cdn.buttercms.com/oWhSigCmRPShKmCFE1IA"></p>
+<h2>Anticone Relationship - DAG</h2>
+<p>Anticone describes blocks that are neither ancestors nor descendants of each other - they exist concurrently in the <a href="https://www.kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG - used by Kaspa" rel="follow noopener" target="_blank">DAG</a>.&nbsp; Two blocks are in each other's Anticone if neither can reach the other through any directed path.&nbsp; This relationship is crucial for GHOSTDAG's security parameter K, which limits Anticone sizes to maintain consensus safety.&nbsp; Here, Block A and Block C are in each others Anticone, Block A is not reachable from Block C, and Block C is not reachable from Block A.</p>
+<p style="text-align: center;"><img alt="undefined" width="900" height="506" src="https://cdn.buttercms.com/RNhZNbRUmeGmQUUWU9aA"></p>
+<h2>Mergeset and Blue/Red Classification - GHOSTDAG</h2>
+<p>Mergeset refers to the collection of blocks that are merged when creating a new block.&nbsp; The Mergeset contains the direct parents of a block, but can additionally contain blocks that are not direct parents.&nbsp; GHOSTDAG classifies Mergeset blocks as "Blue" (honest) or "Red" (potentially conflicting) based on Anticone size constraints.&nbsp; This classification determines which blocks contribute to network security through Blue Work accumulation.&nbsp; Here is an example of block B classifying its Mergeset into Blue and Red while the Anticone size constraint = 0.</p>
+<p style="text-align: center;"><img alt="1 blue 1 red.webp" width="900" height="506" src="https://cdn.buttercms.com/gYCi4AK2QCG1HRd7UzmB"></p>
+<h2>K Parameter - GHOSTDAG</h2>
+<p>The parameter K controls the maximum allowed Anticone size for blue blocks. &nbsp;This parameter is calculated based on network delay, block production rate, and desired security guarantees.&nbsp; In this example, instead of k = 0 like the example above, k = 1 so each blue block has 1 other blue block in its Anticone.</p>
+<p style="text-align: center;"><img alt="2 blue.webp" width="900" height="506" src="https://cdn.buttercms.com/6yB2YGeOSPaBOD8zBJLY"></p>
+<h2>Simplified Definitions</h2>
+<p><strong>Past Relationship</strong> - All blocks reachable by following parent links backward from a given block.</p>
+<p><strong>Future Relationship</strong> - All blocks that can reach a given block by following parent links forward.</p>
+<p><strong>Anticone Relationship</strong> - Blocks that are neither ancestors nor descendants of each other.</p>
+<p><strong>Mergeset</strong> - GHOSTDAG's collection of blocks merged when creating a new block.</p>
+<p><strong>Blue/Red Classification</strong> - GHOSTDAG's categorization of blocks as honest (blue) or potentially conflicting (red).</p>
+<p><strong>Security Parameter K</strong> - GHOSTDAG's maximum allowed anticone size for maintaining consensus safety.</p>
+<h2>Bitcoin and Kaspa</h2>
+<p><strong>Bitcoin</strong> - Uses simple linear terminology: "previous block," "next block," "chain height," and "longest chain."&nbsp; Relationships are straightforward ancestor-descendant connections.&nbsp; Competing blocks are "orphaned" with no intermediate states.</p>
+<p style="text-align: center;"><img alt="bitcoin all data.webp" width="898" height="505" src="https://cdn.buttercms.com/FErgQ6EIQgyRfxUX0dK4"></p>
+<p><strong>Kaspa</strong> - Uses additional terminology including <a href="https://www.kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG - used by Kaspa" rel="follow noopener" target="_blank">DAG</a> Past/Future/Anticone relationships, GHOSTDAG Mergeset, and Mergeset Blue/Red Classification.&nbsp; Kaspa maintains multiple concurrent blocks, handles their relationships and provides consistent ordering.</p>
+<p style="text-align: center;"><img alt="kaspa all data.webp" width="900" height="506" src="https://cdn.buttercms.com/4tsNNkRsej8ZwaJQDywf"></p>

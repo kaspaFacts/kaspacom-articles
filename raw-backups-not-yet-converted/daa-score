@@ -1,0 +1,54 @@
+<h1>DAA Score: Kaspa's Timing Metric for Difficulty Adjustment</h1>
+<h2>What is DAA Score?</h2>
+<p>DAA Score is a cumulative counter that tracks the total number of DAA-eligible blocks in a block's entire history, starting from Genesis. While the <a href="https://kaspa.com/learn-kaspa/post/daa-window" title="What is DAA Window?" rel="follow noopener" target="_blank">Difficulty Adjustment Window</a> uses a subset of recent blocks for calculations, DAA Score itself accumulates all DAA-eligible blocks ever processed. serving as a timing mechanism for maintaining consistent block intervals. Unlike traditional blockchains that use wall-clock time for both timing and calculation, DAA Score uses block count to determine when to adjust difficulty, while still using timestamps from DAA-eligible blocks to calculate the adjustment magnitude based on actual block production rate.</p>
+<h2>The Challenge: Timing Difficulty Adjustments in a DAG</h2>
+<p>In a <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG?" rel="follow noopener" target="_blank">BlockDAG</a> structure where multiple blocks are created simultaneously, traditional time-based difficulty adjustment breaks down because blocks don't have a clear linear ordering. This creates fundamental challenges for maintaining consistent block times in a decentralized network.</p>
+<p>Kaspa's parallel block production means blocks can be created at different rates across multiple branches, making it impossible to rely on timestamps alone for difficulty calculations. The network needs a way to measure "network time" that doesn't depend on wall-clock time, which can vary between nodes and be manipulated by miners.</p>
+<p><strong>Timing Ambiguity</strong>: Without a reliable timing mechanism, nodes cannot agree on when to adjust difficulty, potentially leading to blocks that are too easy or too hard.</p>
+<p><strong>Window Selection Complexity</strong>: In a DAG with parallel blocks, how should the network identify which recent blocks should influence the next difficulty calculation when multiple valid paths exist?</p>
+<p><strong>Consensus Breaks</strong>: If nodes use different time windows for difficulty calculations, they'll compute different difficulty targets, potentially splitting the network and breaking Consensus.</p>
+<p>DAA Score solves these problems by using <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Score?" rel="follow noopener" target="_blank">Blue Score</a> as a proxy for time to create a sliding window of DAA-eligible blocks, providing a consistent timing mechanism that all nodes can agree on without relying on external time sources.</p>
+<h2>How DAA Score Works</h2>
+<h3>The Blue Score Dependency</h3>
+<p>DAA Score relies on Blue Score to determine which blocks are recent enough to influence difficulty calculations. This dependency creates a sliding window that ensures only blocks with sufficiently high Blue Scores participate in DAA calculations.</p>
+<ul>
+  <li><strong>Blue Score Threshold</strong>: Calculated as current block's Blue Score minus the difficulty window size</li>
+  <li><strong>DAA-Eligible Blocks</strong>: All blocks in the <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="What is a Mergeset?" rel="follow noopener" target="_blank">Mergeset</a> with Blue Scores above the threshold</li>
+  <li><strong>Non-DAA Blocks</strong>: Blocks with Blue Scores below the threshold, excluded from difficulty calculations</li>
+</ul>
+<p>The threshold calculation ensures that as the network progresses, older blocks naturally fall out of the difficulty window, creating a time-based sliding effect without using actual timestamps.</p>
+<h3>DAA Score Calculation</h3>
+<p>DAA Score is calculated as the <a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="What is a Selected Parent?" rel="follow noopener" target="_blank">Selected Parent's</a> DAA score plus the number of new DAA-eligible blocks in the current Mergeset. This cumulative approach means DAA Score always represents the total count of difficulty-relevant blocks in a block's history.</p>
+<p>For example, if a block's Selected Parent has a DAA Score of 1000 and the current Mergeset contains 5 DAA-eligible blocks, the new block's DAA Score becomes 1005.</p>
+<h3>Score Calculation Process</h3>
+<ol>
+  <li>Calculate the Blue Score threshold using the current block's Blue Score</li>
+  <li>Identify non-DAA blocks by comparing each Mergeset block's Blue Score against the threshold</li>
+  <li>Count DAA-eligible blocks (total Mergeset Size minus non-DAA blocks)</li>
+  <li>Add this count to the Selected Parent's DAA Score to get the new DAA Score</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Difficulty Adjustment Timing</h3>
+<p>DAA Score serves as the network's primary timing mechanism for difficulty adjustments. The difficulty algorithm uses DAA Score to identify the appropriate window of blocks for calculating the next difficulty target.</p>
+<p>When DAA Score reaches predetermined adjustment points, the network recalculates mining difficulty based on the actual block production rate within the DAA Window. This ensures blocks aren't too easy or too hard, maintaining <a href="https://kaspa.com/learn-kaspa/post/ghostdag-k-cluster" title="Block Creation Rate is an input to parameterizing GHOSTDAG" rel="follow noopener" target="_blank">Target Block Time</a>.</p>
+<p>This approach provides more stable difficulty adjustments than time-based systems because it uses block count for timing while still measuring actual block production rate through timestamps to calculate the adjustment magnitude.</p>
+<h3>Transaction Lock Times</h3>
+<p>DAA Score provides a reliable timestamp alternative for transaction lock times. Instead of using wall-clock time, transactions can specify either a DAA Score or a timestamp at which they become valid.</p>
+<p>This is particularly useful for time-locked transactions that should only be spendable after a certain network state and smart contracts that depend on network progression rather than absolute time.</p>
+<h3>Network Health Monitoring</h3>
+<p>DAA Score growth rate serves as an indicator of network health and block production speed. A steadily increasing DAA Score indicates healthy network activity, while stagnation could signal network problems.</p>
+<h2>Why This Matters</h2>
+<h3>Consistent Block Times</h3>
+<p>DAA Score enables Kaspa to maintain consistent block intervals regardless of network hash rate changes. By using block count rather than time for difficulty adjustments, the network automatically adapts to mining power fluctuations, ensuring predictable block production for users and applications.</p>
+<h3>Resistance to Time Manipulation</h3>
+<p>Since DAA Score uses block count for timing decisions, miners cannot manipulate difficulty by reporting false times. The Blue Score dependency creates a timing mechanism that's tied to actual Network Consensus State, making it much more resistant to manipulation attacks.</p>
+<h3>Decentralized Timekeeping</h3>
+<p>DAA Score provides a Decentralized way to measure network time that all nodes can agree on without central coordination or trusted time sources. This is essential for maintaining Consensus in a distributed system where nodes cannot rely on external time references.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>DAA Score Times Difficulty</strong> - DAA Score is a block count used to determine when to adjust mining difficulty, not a measure of work</li>
+  <li><strong>Blue Score Enables DAA</strong> - Blue Score determines which blocks are DAA-eligible by creating a time-based threshold</li>
+  <li><strong>Sliding Window Mechanism</strong> - The Blue Score threshold creates a natural sliding window that excludes old blocks from difficulty calculations</li>
+  <li><strong>Consensus Without Clocks</strong> - DAA Score enables decentralized timekeeping without relying on wall-clock time for timing decisions</li>
+  <li><strong>Practical Applications</strong> - Beyond difficulty adjustment, DAA Score is used for transaction lock times and network health monitoring</li>
+</ul>

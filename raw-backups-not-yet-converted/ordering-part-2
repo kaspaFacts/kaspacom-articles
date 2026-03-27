@@ -1,0 +1,31 @@
+<h2>Intermediate Level - What is Mergeset Creation?</h2>
+<p>Mergeset creation is the process by which Kaspa's GHOSTDAG protocol determines which blocks to include alongside a <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Selecting a Parent induces a Parent Chain" rel="follow">Selected Parent</a> when forming consensus. &nbsp;Unlike traditional blockchains that only reference a single parent, Kaspa creates a Mergeset containing multiple blocks that can coexist without violating consensus rules.</p>
+<p style="text-align: center;"><img alt="parent chain.webp" width="900" height="506" src="https://cdn.buttercms.com/mMzceOBWSpGN2n2wtzgr"></p>
+<h2>The Discovery Algorithm</h2>
+<p>The Mergeset creation process begins with a breadth-first traversal algorithm that discovers all candidate blocks. &nbsp;Starting from the block's direct parents (excluding the Selected Parent), the algorithm:</p>
+<ol>
+  <li><strong>Initializes the search</strong>: Creates a queue with all non-selected parents</li>
+  <li><strong>Traverses backwards</strong>: For each block in the queue, examines its parents</li>
+  <li><strong>Applies exclusion rules</strong>: Skips blocks that are already in the Mergeset or in the past of the Selected Parent</li>
+  <li><strong>Expands the set</strong>: Adds qualifying blocks to both the Mergeset and processing queue</li>
+</ol>
+<p>The key insight is that blocks "in the past" of the Selected Parent are excluded.</p>
+<p>Here block B is having its Mergeset created.&nbsp; The Selected Parent of B in blue, and the Past of the Selected Parent labeled SP.P (everything in gray is also in the past of the Selected Parent, so we can simplify this example), and the Mergeset of block B is in green.&nbsp; note: The Parent Inclusive Mergeset = Blue + Green, the Parent Exclusive Mergeset = Green</p>
+<p style="text-align: center;"><img alt="mergeset selection.webp" width="900" height="506" src="https://cdn.buttercms.com/Fcosu9vtTUmuwmts7EWR"></p>
+<h2>Selected Parent Foundation</h2>
+<p>Before Mergeset creation begins, the protocol identifies the <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="Ordering pt1" rel="follow noopener" target="_blank">Selected Parent</a> using blue work comparison. &nbsp;The Selected Parent becomes the anchor point - it's automatically included as the first blue block in the Mergeset and serves as the reference for determining which other blocks can be safely included.</p>
+<p style="text-align: center;"><img alt="selecting a parent.webp" width="900" height="506" src="https://cdn.buttercms.com/EKkr4BpNRvSPmQRvoNqn"></p>
+<h2>Blue and Red Classification</h2>
+<p>Once candidate blocks are discovered, each undergoes classification through the k-cluster validation process. &nbsp;This determines whether blocks become:</p>
+<ul>
+  <li><strong>Blue blocks</strong>: Blocks that don't violate the k-parameter security constraint and contribute to consensus</li>
+  <li><strong>Red blocks</strong>: Blocks that would violate k-constraints but are still preserved in the DAG structure</li>
+</ul>
+<h2>Deterministic Ordering</h2>
+<p>The final Mergeset is arranged in a consensus-agreed order that all nodes can reproduce. &nbsp;Blue and red blocks are merged in ascending blue work order, ensuring deterministic transaction processing across the network.</p>
+<h2>Size Constraints</h2>
+<p>The protocol enforces Mergeset size limits to maintain performance and prevent abuse. &nbsp;These constraints ensure that block validation remains computationally feasible while still allowing significant parallelism compared to traditional blockchains.</p>
+<h2>The Result</h2>
+<p>The Mergeset creation process produces a structured set of blocks that maximizes inclusion while maintaining consensus safety.&nbsp; This enables Kaspa to achieve high throughput by processing multiple blocks simultaneously, rather than discarding competing work as traditional blockchains do.</p>
+<h2>Simplified Explanation</h2>
+<p>This blocks Mergeset is made up of all the blocks in the past of this block, that are not in the past of this blocks Selected Parent.</p>

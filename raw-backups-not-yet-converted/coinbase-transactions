@@ -1,0 +1,54 @@
+<h2>What are Coinbase Transactions?</h2>
+<p>Coinbase Transactions are special transactions that create new Kaspa coins as block rewards for miners who successfully mine blocks. They serve as the primary mechanism for coin issuance and miner compensation, containing the block subsidy plus transaction fees from the block's transactions.</p>
+<h2>The Challenge: Reward Distribution and Security</h2>
+<p>Kaspa needs a secure and predictable way to distribute new coins while preventing double-spending and ensuring network stability. The challenge lies in balancing miner incentives with network security and economic policy.</p>
+<p>In Kaspa's high-throughput <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG?" rel="follow noopener" target="_blank">DAG</a> structure, this becomes more complex because multiple blocks can be mined simultaneously, creating parallel reward chains that must be properly coordinated to prevent duplicate rewards and ensure fair distribution across the network.</p>
+<p><strong>Double Spending Prevention</strong>: Without proper maturity rules, miners could immediately spend newly created coins from Coinbase Transactions. If those blocks are later reorganized, the spending transaction and any subsequent transactions that relied on those Coinbase outputs would become invalid, as their inputs would no longer exist in the <a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO?" rel="follow noopener" target="_blank">UTXO</a> set.</p>
+<p><strong>Network Security</strong>: The reward mechanism must incentivize honest mining behavior and participation in Consensus, just as in any Proof-of-Work system. Miners are compensated for their computational work and for following the Consensus rules, which Secure the network against attacks and ensures reliable transaction processing.</p>
+<p><strong>Economic Policy</strong>: The subsidy schedule must be predictable and enforceable to maintain the network's monetary policy. The <a href="https://kaspa.com/learn-kaspa/post/daa-score" title="What is DAA Score?" rel="follow noopener" target="_blank">DAA Score</a>&nbsp;based calculation ensures a controlled emission rate that transitions from pre-deflationary to deflationary phases at known milestones, preventing unexpected inflation.</p>
+<p>Coinbase Transactions solve these problems through three tightly coordinated mechanisms: Maturity Periods (1000 blocks post-Crescendo) that prevent spending reorganized rewards, DAA Score based subsidy calculations enforcing predictable emission schedules, and Validation Rules that verify both subsidy amounts and Blue Score consistency.</p>
+<h2>How Coinbase Transactions Work</h2>
+<h3>Subsidy Calculation</h3>
+<p>The block subsidy is calculated based on the network's DAA Score using a predictable emission schedule. This ensures controlled coin issuance over time while maintaining network Security through miner incentives.</p>
+<ul>
+  <li><strong>Difficulty-Based</strong>: Subsidy amount depends on the network's current DAA Score</li>
+  <li><strong>Predictable Schedule</strong>: Follows a predefined emission schedule that controls coin creation rate</li>
+  <li><strong>Network Security</strong>: Ensures miners are compensated for Securing the network</li>
+</ul>
+<p>The calculation implements the emission schedule logic to determine the appropriate reward for each block based on the network's current state and phase of the monetary policy.</p>
+<h3>Coinbase Validation</h3>
+<p>Every block's first transaction must be a valid Coinbase Transaction that passes multiple validation checks to ensure network integrity and economic consistency.</p>
+<p>The validation process enforces two critical checks: the Coinbase payload must contain the correct <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Score?" rel="follow noopener" target="_blank">Blue Score</a> matching the block header, and the subsidy amount must match the expected calculation for that DAA Score.</p>
+<h3>Maturity Period</h3>
+<p>Coinbase Transactions have a maturity period of 1000 blocks before their outputs can be spent, ensuring network stability by preventing immediate use of newly created coins.</p>
+<ol>
+  <li>Block is mined and Coinbase Transaction created with new coins</li>
+  <li>Transaction outputs are marked as immature and unspendable</li>
+  <li>Network must accumulate 1000 blocks after the Coinbase Transaction</li>
+  <li>After maturity period, outputs become spendable in transactions</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Block Template Generation</h3>
+<p>When miners request block templates from the network, they provide their own payment address where they want to receive the Coinbase reward. The network validates this address and constructs a complete block template that includes a Coinbase Transaction paying the block subsidy plus transaction fees to the miner's specified address.</p>
+<p>This process ensures miners receive their rewards directly in their wallet while maintaining the predictable monetary policy through proper subsidy calculation.</p>
+<h3>Network Consensus Integration</h3>
+<p>Coinbase Transactions are deeply integrated with Kaspa's <a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="What is GHOSTDAG?" rel="follow noopener" target="_blank">Consensus Mechanism</a>, ensuring reward calculations align with each block's position in the network's Directed Acyclic Graph. The Blue Score recorded in the Coinbase Transaction must match the block's Consensus State, preventing reward manipulation and maintaining economic consistency across parallel chains.</p>
+<p>This integration ensures fair reward distribution even when multiple blocks are mined simultaneously, coordinating rewards across Kaspa's high-throughput structure.</p>
+<h3>Network Reliability</h3>
+<p>The network maintains reliability through comprehensive validation of Coinbase Transactions. Incorrect subsidy calculations are automatically rejected, protecting the monetary policy, while maturity period enforcement prevents network instability from premature spending.</p>
+<p>This robust validation ensures that only properly formed Coinbase Transactions are accepted, maintaining network Security and economic stability across all participating nodes.</p>
+<h2>Why This Matters</h2>
+<h3>Network Security</h3>
+<p>Coinbase maturity periods of 1000 blocks prevent miners from spending rewards before their blocks are sufficiently buried in the network, eliminating the risk of transaction invalidation from chain reorganizations. This DAA based security ensures that even with Kaspa's high-throughput structure, the economic stability of the network remains protected.</p>
+<h3>Predictable Monetary Policy</h3>
+<p>The DAA based subsidy calculation enforces a transparent and unchangeable emission schedule, ensuring that no party can manipulate coin creation rates. This predictable monetary policy provides system reliability by guaranteeing that the economic rules established at launch are mathematically verifiable and cannot be altered through consensus attacks.</p>
+<h3>Miner Incentives</h3>
+<p>Proper reward distribution through Coinbase Transactions creates a sustainable economic model that incentivizes honest mining behavior. Miners are reliably compensated for their computational work and for following consensus rules, which secures the network against attacks and ensures reliable transaction processing for all users.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Block Rewards</strong> - Coinbase Transactions create new coins as rewards for mining blocks, combining subsidy plus transaction fees</li>
+  <li><strong>DAA-Based Calculation</strong> - Rewards are calculated based on the network's DAA Score using a predictable emission schedule</li>
+  <li><strong>Maturity Period</strong> - Coinbase outputs require 1000 blocks of confirmation before becoming spendable</li>
+  <li><strong>Validation Rules</strong> - Strict checks ensure Blue Score and Subsidy amounts match expected values</li>
+  <li><strong>Network Integration</strong> - Coinbase Transactions are essential to Kaspa's DAG Consensus and Economic Security Model</li>
+</ul>

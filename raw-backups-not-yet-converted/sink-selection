@@ -1,0 +1,56 @@
+<h2>What is Sink Selection?</h2>
+<p>Sink Selection is Kaspa's algorithm for choosing the <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="What is Virtual" rel="follow noopener" target="_blank">Virtual</a> <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="How Selected Parent is Selected" rel="follow noopener" target="_blank">Selected Parent</a> (Sink) from multiple competing block tips in the <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG?" rel="follow noopener" target="_blank">BlockDAG</a>. It identifies the highest-scoring valid block that represents the current network state, serving as the primary reference point for all consensus operations.</p>
+<h2>The Challenge: Choosing a Single Tip in a Parallel World</h2>
+<p>In Kaspa's BlockDAG, multiple blocks can be created simultaneously, creating ambiguity about which block represents the "current" state. Without a clear selection mechanism, nodes would disagree on which transactions are confirmed, what difficulty to use for mining, and how to build the next block.</p>
+<p>Kaspa's parallel block structure means the network needs a deterministic way to choose a single reference point from multiple valid tips, otherwise consensus would break down.</p>
+<p><strong>Chain State Ambiguity</strong>: Multiple competing tips make it unclear which UTXO Set represents the current state, preventing wallets from showing accurate balances and miners from building valid blocks.</p>
+<p><strong>Mining Direction Uncertainty</strong>: Without a clear parent selection, miners might build on different tips, fragmenting the network and wasting computational resources.</p>
+<p><strong>Consensus Instability</strong>: Different nodes could choose different tips as their reference point, leading to chain splits and network partitioning.</p>
+<p>Sink Selection solves these problems by providing a deterministic algorithm that all nodes can follow to agree on a single Sink Block.</p>
+<h2>How Sink Selection Works</h2>
+<h3>The Sink Search Algorithm</h3>
+<p>The core algorithm searches for the highest-scoring valid block among current tips using a max-heap data structure.</p>
+<ul>
+  <li><strong>Blue Work Priority</strong>: Uses a max-heap to prioritize blocks with higher <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Work?" rel="follow noopener" target="_blank">Blue Work</a> values</li>
+  <li><strong>UTXO Validation</strong>: Ensures candidates have valid <a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO?" rel="follow noopener" target="_blank">UTXO</a> State before selection</li>
+  <li><strong>Finality Compliance</strong>: Rejects blocks that violate <a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="What is Finality Depth?" rel="follow noopener" target="_blank">Finality</a> constraints to maintain network stability</li>
+</ul>
+<p>The algorithm maintains an antichain invariant in its heap and iteratively searches for the highest Blue Work block that meets all validation criteria.</p>
+<h3>Virtual Parent Selection</h3>
+<p>After selecting the Sink, additional Virtual Parents are chosen to incorporate parallel work into the <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="What is Virtual Block?" rel="follow noopener" target="_blank">Virtual Block</a>.</p>
+<p>For example, with a maximum of 10 parents, the system might select the Sink plus 9 additional high-scoring blocks from different parts of the DAG, ensuring diversity while respecting <a href="https://kaspa.com/learn-kaspa/post/mergeset-size-limit" title="What is the Mergeset Size Limit?" rel="follow noopener" target="_blank">Mergeset Size Limits</a>.</p>
+<h3>Virtual State Resolution</h3>
+<p>The entire process is triggered during `resolve_virtual()` which orchestrates the Sink Selection and updates the Virtual State.</p>
+<ol>
+  <li>Filter tips by Finality Point</li>
+  <li>Execute Sink Search algorithm</li>
+  <li>Select additional Virtual Parents</li>
+  <li>Update Virtual State with new Sink</li>
+  <li>Emit notifications about the Sink change</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Mining Block Templates</h3>
+<p>Miners query the current Sink to determine which blocks to use as Parents when building new blocks. The Sink provides the Authoritative State that all miners reference, ensuring coordinated mining efforts and preventing orphan blocks.</p>
+<p>This matters because it prevents mining waste and ensures network Security through coordinated mining efforts.</p>
+<h3>Transaction Validation</h3>
+<p>The Sink's UTXO State serves as the reference for validating new transactions. When a transaction is submitted, it's checked against the Virtual UTXO Set to ensure it spends valid outputs.</p>
+<p>Validation formula: Check if transaction inputs exist in Virtual UTXO set AND verify signatures</p>
+<p>This formula means every transaction must spend existing, unspent outputs and be properly signed to be valid.</p>
+<h3>Network Information Services</h3>
+<p>RPC interfaces expose Sink information to external applications like Block Explorers and Wallets.</p>
+<p>For example, a Wallet can query the Sink hash to show a user their current balance with confidence that it reflects the network's agreed-upon State.</p>
+<h2>Why This Matters</h2>
+<h3>Consistent Network State</h3>
+<p>Sink selection ensures all nodes agree on the current State, even when they have slightly different views of the underlying DAG. This consistency is crucial for maintaining Consensus and preventing chain splits.</p>
+<h3>Efficient Mining Operations</h3>
+<p>By providing clear guidance on which blocks to use as parents, Sink Selection enables efficient mining operations. Miners don't need to analyze the entire DAG - they can simply query the Sink and start building valid blocks.</p>
+<h3>Simplified Application Development</h3>
+<p>External applications can interact with Kaspa as if it were a traditional blockchain, querying the Sink for balances, transaction confirmations, and network metrics. This abstraction dramatically simplifies wallet and exchange development.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Sink is the Selected Parent</strong> - The Sink represents the highest-scoring valid block in the current DAG</li>
+  <li><strong>Blue Work Determines Priority</strong> - Blocks with higher Blue Work are preferred during selection</li>
+  <li><strong>UTXO Validation is Required</strong> - Only blocks with valid UTXO State can become the Sink</li>
+  <li><strong>Finality Constraints Must Be Respected</strong> - The Sink must maintain network stability by following Finality rules</li>
+  <li><strong>Enables Consensus in Parallel World</strong> - Sink selection allows Kaspa to benefit from parallel block creation while maintaining agreement</li>
+</ul>

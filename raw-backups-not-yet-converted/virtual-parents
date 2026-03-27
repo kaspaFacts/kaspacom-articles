@@ -1,0 +1,54 @@
+<h2>What are Virtual Parents?</h2>
+<p>Virtual Parents are the direct Parent Blocks of Kaspa's <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="What is Virtual Block?" rel="follow noopener" target="_blank">Virtual Block</a>. They are dynamically selected to maintain Consensus Rules and Network Health, enabling the network to process blocks with bounded processing requirements while maintaining Security Properties in Kaspa's <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG" rel="follow noopener" target="_blank">blockDAG</a> structure.</p>
+<h2>The Challenge: Managing Consensus in a BlockDAG</h2>
+<p>In a traditional blockchain, there's a single chain tip, but Kaspa's blockDAG allows multiple blocks to coexist. This creates core challenges for determining which blocks represent the current State and which should be built upon next.</p>
+<p><strong>Multiple Competing Tips</strong>: Without a mechanism to select parents, miners wouldn't know which blocks to build on, leading to fragmented Security and reduced collective Security Benefit.</p>
+<p><strong>Performance Degradation</strong>: Including too many Parent Blocks would cause quadratic growth in processing requirements and storage needs, making the network unsustainable at high throughput. The maximum number of parents represents a deliberate balance between performance and accessibility - while higher limits could increase throughput, they would also raise minimum hardware requirements. Kaspa's design prioritizes keeping node requirements low to ensure Broad Participation and Decentralization.</p>
+<p><strong>Finality and Security</strong>: The system must ensure that <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="Parents vs Mergeset" rel="follow noopener" target="_blank">Selected Parents</a> respect <a href="https://kaspa.com/learn-kaspa/post/finality-depth" title="What is Finality?" rel="follow noopener" target="_blank">Finality</a> constraints and don't allow attacks that could rewrite deeply buried transaction history.</p>
+<p>Virtual Parents solve these problems by selecting a limited set of Parent Blocks that maintains Security constraints while optimizing Performance and Network Convergence through a constraint-based selection algorithm.</p>
+<h2>How Virtual Parents Work</h2>
+<h3>Sink Search Algorithm</h3>
+<p>The first step finds the <a href="https://kaspa.com/learn-kaspa/post/sink-selection" title="What is the Sink?" rel="follow noopener" target="_blank">Sink</a>. This algorithm searches for the highest <a href="https://kaspa.com/learn-kaspa/post/blue-score-and-blue-work" title="What is Blue Work?" rel="follow noopener" target="_blank">Blue Work</a> Block with valid <a href="https://kaspa.com/learn-kaspa/post/kaspa-utxo-model" title="What is a UTXO?" rel="follow noopener" target="_blank">UTXO</a> State that respects Finality constraints.</p>
+<ul>
+  <li><strong>Antichain Maintenance</strong>: Candidates are blocks where none are <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is an Ancestor?" rel="follow noopener" target="_blank">ancestors</a> of another</li>
+  <li><strong>Blue Work Ordering</strong>: Candidates are processed in descending Blue Work order</li>
+  <li><strong>UTXO Validation</strong>: Each candidate is validated by ensuring it has valid UTXO State</li>
+  <li><strong>Finality Checks</strong>: Ensures candidates don't violate Finality constraints</li>
+</ul>
+<p>The Sink becomes the first Virtual Parent and the foundation for additional parent selection.</p>
+<h3>Virtual Parent Selection</h3>
+<p>Once the Sink is found, additional Parents are selected from remaining candidates through a constraint-based process that enforces network diversity while maintaining performance requirements.</p>
+<p>The algorithm considers a multiple of the Parent Limit for candidates and uses randomization for lower-ranked candidates to ensure network diversity. The selection prioritizes candidates by Blue Work while applying <a href="https://kaspa.com/learn-kaspa/post/mergeset-size-limit" title="What is Mergeset Size Limit?" rel="follow noopener" target="_blank">Mergeset Size</a> and Parent Count constraints to maintain network health.</p>
+<h3>Constraint Validation</h3>
+<p>The selection process enforces multiple constraints to ensure network health:</p>
+<ol>
+  <li><strong>Mergeset Size Limit</strong>: Calculates if adding a candidate would exceed the limit for the set of blocks that will be merged into the virtual chain, ensuring manageable memory requirements for nodes</li>
+  <li><strong>Parent Count Limit</strong>: Enforces the maximum of parents to keep processing requirements low and maintain broad node accessibility</li>
+  <li><strong>Bounded Merge Depth</strong>: Removes parents that would violate the <a href="https://kaspa.com/learn-kaspa/post/merge-depth-bound" title="What is Merge Depth Bound?" rel="follow noopener" target="_blank">Merge Depth Bound</a></li>
+  <li><strong>Finality depth</strong>: Ensures all parents respect the Finality window</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Block Template Construction</h3>
+<p>Miners use Virtual Parents as the foundation for building new blocks. The Virtual Parents become the parent references in new Block Headers, ensuring all miners build on the same consensus foundation.</p>
+<p>This creates a unified mining target while still allowing the blockDAG structure to accommodate multiple parallel blocks, providing both Security and High Throughput.</p>
+<h3>UTXO State Management</h3>
+<p>The Virtual Block's UTXO State is calculated by inheriting the Sink's State and applying the <a href="https://kaspa.com/learn-kaspa/post/parents-vs-mergeset" title="What is Mergeset?" rel="follow noopener" target="_blank">Mergeset</a> of blocks, derived from all Virtual Parents. This ensures the network maintains a consistent view of spendable outputs.</p>
+<p>Formula: Virtual UTXO State = Sink UTXO State + Changes from Merged Blocks</p>
+<p>This allows State Updates with minimal computational overhead without requiring full chain reorganizations when the Virtual Parent Set changes.</p>
+<h3>Network Synchronization</h3>
+<p>Virtual Parents serve as the synchronization point for network nodes. When nodes communicate their Virtual Parent Sets, they can determine with minimal latency if they're on the same Consensus View or need to request missing blocks.</p>
+<h2>Why This Matters</h2>
+<h3>High Throughput Performance</h3>
+<p>Virtual Parents enable Kaspa to achieve high throughput while maintaining Security and keeping node requirements low. The Parent Limit prevents quadratic growth in processing requirements, ensuring broad participation across the network.</p>
+<h3>Network Convergence</h3>
+<p>By selecting Parents based on Blue Work and using randomization for diversity, Virtual Parents ensure the network reaches agreement on a single Consensus View without central coordination, maintaining Decentralization while enabling rapid Finality.</p>
+<h3>Security Guarantees</h3>
+<p>The multi-layered constraint system (Mergeset Limits, Merge Depth Bounds, Finality Constraints) ensures that Virtual Parent selection cannot be manipulated to attack the network or rewrite transaction history, providing robust Security Properties even at high throughput.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Dynamic Selection</strong> - Virtual Parents are not fixed but dynamically selected based on network conditions and block topology</li>
+  <li><strong>Performance Optimized</strong> - Limited to a maximum number of Parents to prevent quadratic growth in processing requirements and maintain low node hardware requirements</li>
+  <li><strong>Multi-Constraint System</strong> - Selection enforces Mergeset Size, Merge Depth, and Finality Constraints for Security</li>
+  <li><strong>Network Foundation</strong> - Serves as the Consensus Foundation for mining, UTXO Management, and Node Synchronization</li>
+  <li><strong>Configurable Design</strong> - Parameterized by Network Throughput Rate, allowing adaptation to different Network Configurations</li>
+</ul>

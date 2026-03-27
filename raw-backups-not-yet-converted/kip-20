@@ -1,0 +1,66 @@
+<h2>What is KIP-20?</h2>
+<p>KIP-20 introduces covenant identifiers (unique tags for covenant groups), which are 32-byte network-verified identifiers carried by UTXOs to establish a stable covenant chain (sequence of related covenant transactions) across coin movements. The mechanism provides native covenant chain tracking and tamper-proof protection at the consensus level (network-wide agreement rules), eliminating the need for previous transaction proofs in covenant validation.</p>
+<p><strong>Note:</strong> KIP-20 is currently in proposal stage with implementation pending network activation.</p>
+<h2>The Challenge: Covenant Implementation Limitations</h2>
+<p>KIP-17 enables covenants via transaction introspection (scripts that can read transaction data), but establishing continuous application identity requires recursive proofs and parent transaction witnesses. This creates significant overhead in transaction size and forces covenant logic to depend on standard transaction format within the script processing system.</p>
+<p><strong>Witness Size Overhead</strong>: Covenant validation requires carrying parent and often grandparent transactions as witness data (proof information included with transactions), increasing transaction size and network bandwidth requirements.</p>
+<p><strong>Encoding Dependencies</strong>: Covenant logic must depend on standard transaction format and hashing within the script processing system, creating implementation complexity.</p>
+<p><strong>State Forgery Risk</strong>: Parent/grandparent-witness schemes can only ensure forged covenant UTXOs are unspendable, not that they are uncreatable in the first place.</p>
+<p>KIP-20 solves these problems by introducing a minimal consensus-enforced mechanism that provides native covenant chain tracking, prevents state forgery at the consensus level, and eliminates the need for previous transaction proofs.</p>
+<h2>How KIP-20 Works</h2>
+<h3>Data Model Extensions</h3>
+<p>KIP-20 extends core transaction and UTXO structures with covenant-related fields while maintaining backward compatibility for non-covenant transactions.</p>
+<ul>
+  <li><strong>TransactionOutput.covenant</strong>: Optional CovenantBinding containing authorizing_input (input number) and covenant_id (32-byte hash)</li>
+  <li><strong>UtxoEntry.covenant_id</strong>: Optional 32-byte hash identifier carried by the UTXO</li>
+  <li><strong>Transaction versioning</strong>: Covenant bindings only supported in transactions with version &gt;= 1</li>
+</ul>
+<p>The covenant binding declares which input authorizes the output and which covenant instance it belongs to, while the UTXO entry carries the actual covenant identifier for consensus tracking.</p>
+<h3>Consensus Validation Rules</h3>
+<p>KIP-20 introduces two fundamental rules for covenant creation at the consensus level:</p>
+<p><strong>Continuation Rule</strong>: An output can carry a covenant_id if its authorizing input spends a UTXO with the same covenant_id. This enables covenant chains to continue across transactions.</p>
+<p><strong>Genesis Rule</strong>: New covenant instances can be created through genesis initialization, where the covenant_id is computed as a secure hash of the authorizing outpoint and approved outputs.</p>
+<h3>Genesis Hashing Algorithm</h3>
+<p>Genesis covenant IDs are computed using a secure hash function of the authorizing outpoint and approved outputs. The approved outputs are listed in order by output index, ensuring deterministic covenant creation.</p>
+<h3>Script Introspection Opcodes</h3>
+<p>KIP-20 introduces new opcodes for covenant-related reasoning within transactions:</p>
+<ul>
+  <li><strong>OpInputCovenantId</strong>: Get covenant identifier of a UTXO input</li>
+  <li><strong>OpAuthOutputCount</strong>: Count approved outputs for an input</li>
+  <li><strong>OpAuthOutputIdx</strong>: Get index of k-th approved output</li>
+  <li><strong>OpCovInputCount</strong>: Count inputs with specific covenant ID</li>
+  <li><strong>OpCovInputIdx</strong>: Get index of k-th input with covenant ID</li>
+  <li><strong>OpCovOutCount</strong>: Count outputs with specific covenant ID</li>
+  <li><strong>OpCovOutputIdx</strong>: Get index of k-th output with covenant ID</li>
+</ul>
+<p>These opcodes enable efficient covenant validation without requiring parent/grandparent transaction data as witnesses.</p>
+<h2>How the Network Uses This</h2>
+<h3>Singleton Covenant Pattern</h3>
+<p>Supports simple state machines where each covenant has exactly one active UTXO. The covenant script validates that the spending transaction creates exactly one continuation output with the same covenant_id, ensuring linear state progression.</p>
+<p>For example, a payment channel could use this pattern where each state update spends the current channel UTXO and creates a new one with updated parameters.</p>
+<h3>Covenant Transition Pattern</h3>
+<p>Enables safe exit/enter patterns between covenants within single transactions. A transaction can simultaneously exit one covenant (spending its UTXO without continuation) while entering another (creating genesis outputs for the new covenant).</p>
+<p>This atomic behavior ensures that either both operations succeed or neither does, preventing partial state transitions that could leave funds in inconsistent states.</p>
+<h3>Canonical Bridge Infrastructure</h3>
+<p>KIP-20 provides foundational infrastructure for L1/L2 canonical bridges, though complete implementation requires additional components:</p>
+<p><strong>Entry Operations</strong>: Users can initiate L2 entry by sending KAS to covenant addresses that use covenant scripts to verify proper authorization and route funds to the L2 state commitment.</p>
+<p><strong>Exit Operations</strong>: L2 state transitions can include exit operations that transfer funds back to L1 addresses, with validity enforced through zero-knowledge proofs using KIP-16's verification capabilities and covenant validation.</p>
+<p><strong>Additional Requirements</strong>: Complete bridge implementation requires KIP-16's ZK proof verification capabilities, origin verification patterns, and layer connection linking beyond KIP-20's scope.</p>
+<h3>Many-to-Many Leader-Follower Pattern</h3>
+<p>Supports complex state transitions where multiple covenant inputs and outputs participate, using a designated leader input for validation coordination.</p>
+<p>For example, native asset protocols can use this pattern where multiple UTXOs representing different token holders participate in a single all-or-nothing transfer, with one input designated as the leader responsible for validating the complete transition.</p>
+<h2>Why This Matters</h2>
+<h3>Reduced Transaction Size</h3>
+<p>Eliminates the need to carry parent and grandparent transactions as witness data, reducing transaction size and lowering network bandwidth and storage requirements.</p>
+<h3>Enhanced Security Model</h3>
+<p>Shifts covenant security from script-level validation (program-based checking) to consensus-level enforcement (network rule enforcement), making forged covenant UTXOs un-creatable rather than just un-spendable, providing stronger security guarantees.</p>
+<h3>Simplified Covenant Development</h3>
+<p>Removes the burden of standard format and hashing logic from covenant scripts, allowing developers to focus on application logic rather than low-level transaction structure validation.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Native Chain Tracking</strong> - KIP-20 provides consensus-level covenant chain tracking through 32-byte identifiers carried by UTXOs</li>
+  <li><strong>Tamper-Proof Guarantee</strong> - Covenant UTXOs cannot be created unless they follow strict continuation or genesis rules</li>
+  <li><strong>Witness Elimination</strong> - Removes the need for parent/grandparent transaction proofs in covenant validation</li>
+  <li><strong>All-or-Nothing Covenant Transitions</strong> - Enables safe exit/enter patterns between covenants within single transactions</li>
+  <li><strong>Bridge Infrastructure</strong> - Provides foundational primitives for L1/L2 canonical bridges and advanced applications</li>
+</ul>

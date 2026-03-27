@@ -1,0 +1,57 @@
+<h2>What is Past Median Time?</h2>
+<p>Past Median Time is a Kaspa Consensus Mechanism that calculates a Representative Timestamp from a Window of historical blocks to <a href="https://kaspa.com/learn-kaspa/post/timestamp-validation" title="Timestamp Validation Process" rel="follow noopener" target="_blank">validate new block timestamps</a>. It uses a Sampled Window approach, ensuring blocks cannot have timestamps too far in the past while maintaining consistent behavior regardless of network <a href="https://kaspa.com/learn-kaspa/post/blocks-per-second" title="BPS is Configurable while Maintaining Security" rel="follow noopener" target="_blank">block rate</a>.</p>
+<h2>The Challenge: Timestamp Validation in High-Throughput Networks</h2>
+<p>In a <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is the difference between BlockChain and BlockDAG?" rel="follow noopener" target="_blank">BlockChain</a> network, proper Timestamp Validation is essential for maintaining Security and preventing timestamp manipulation attacks. Kaspa's high block rate creates specific challenges for Timestamp Management.</p>
+<p>Traditional Median Time calculations Scale Linearly with block rate, causing inconsistent behavior across different network configurations. This becomes problematic as the Kaspa protocol supports different <a href="https://kaspa.com/learn-kaspa/post/ghostdag-k-cluster" title="How does Kaspa support different configurations?" rel="follow noopener" target="_blank">parameter configurations</a> for various deployment scenarios.</p>
+<p><strong>Timestamp Manipulation</strong>: Without proper Median Time Validation, malicious actors could submit blocks with significantly skewed timestamps, potentially disrupting Difficulty Adjustment and Network Synchronization.</p>
+<p><strong>Configuration Inconsistency</strong>: Different parameter configurations operating at various block rates make it difficult to maintain consistent Timestamp Validation Rules across all deployment scenarios.</p>
+<p><strong>Performance Bottlenecks</strong>: Calculating Median Time from large windows of historical blocks can become Computationally Expensive, especially at high block rates where windows would contain <a href="https://kaspa.com/learn-kaspa/post/kaspa-and-the-bitcoin-scaling-problem" title="A result of solving the Scaling Problem" rel="follow noopener" target="_blank">thousands of blocks</a>.</p>
+<p>Past Median Time solves these problems by using a Sampled Window approach that maintains constant window size regardless of block rate, providing consistent validation rules while optimizing performance.</p>
+<h2>How Past Median Time Works</h2>
+<h3>Sampled Window Construction</h3>
+<p>The system builds windows by traversing the <a href="https://kaspa.com/learn-kaspa/post/parent-chain" title="How is the Selected Parent Chain determined?" rel="follow noopener" target="_blank">Selected Parent Chain</a> backwards and sampling blocks at regular intervals based on their <a href="https://kaspa.com/learn-kaspa/post/daa-score" title="What is DAA Score?" rel="follow noopener" target="_blank">DAA Score</a>.</p>
+<ul>
+  <li><strong>Window Size</strong>: A fixed-size window that maintains consistent behavior across different network configurations</li>
+  <li><strong>Sample Rate</strong>: Blocks sampled at regular intervals based on network block rate</li>
+  <li><strong>Sample Interval</strong>: Consistent time periods between samples to ensure even distribution</li>
+</ul>
+<p>Blocks are sampled at regular positions within the network's difficulty sequence, ensuring even distribution across the window.</p>
+<h3>Median Calculation Algorithm</h3>
+<p>The implementation averages a small group of central values from sorted timestamps to create a representative timestamp, providing smoother results than a true median.</p>
+<p>For example, with timestamps [100, 105, 110, 115, 120, 125, 130, 135, 140, 145, 150], the algorithm would average the central values to get a representative timestamp.</p>
+<h3>Window Building Process</h3>
+<p>The window construction follows a systematic approach to gather representative historical timestamps.</p>
+<ol>
+  <li>Start from the Selected Parent and traverse backwards through the chain</li>
+  <li>Sample blocks at regular positions within the network's difficulty sequence</li>
+  <li>Collect blocks organized by their chain importance, ensuring the window contains the most significant blocks</li>
+  <li>Stop when window reaches its target size, maintaining consistent validation across all network configurations</li>
+  <li>Optionally merge with cached parent windows for efficiency to optimize performance</li>
+</ol>
+<h2>How the Network Uses This</h2>
+<h3>Header Validation</h3>
+<p>Past Median Time is validated during header processing to ensure new blocks have timestamps greater than the calculated median.</p>
+<p>Blocks with timestamps less than or equal to the Past Median Time are rejected, preventing timestamp manipulation attacks.</p>
+<p>This validation is essential for maintaining network Security and preventing Difficulty Adjustment Manipulation.</p>
+<h3>Virtual State Calculation</h3>
+<p>The Virtual Processor calculates Past Median Time when computing the <a href="https://kaspa.com/learn-kaspa/post/virtual-block" title="Virtual Block to Virtual State" rel="follow noopener" target="_blank">Virtual State</a>, which represents the current tip of the <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a BlockDAG?" rel="follow noopener" target="_blank">BlockDAG</a>.</p>
+<p>The calculation uses a smoothed average of central timestamps from the sorted window values</p>
+<p>This ensures the Virtual State always has a valid timestamp reference for subsequent Block Validation.</p>
+<h3>Network Parameter Configuration</h3>
+<p>Different Kaspa deployment configurations use different parameters based on their block rate configuration.</p>
+<p>Each configuration uses appropriate Window Sizes and Sample Intervals to maintain consistent Security Guarantees.</p>
+<h2>Why This Matters</h2>
+<h3>Consistent Security Across Networks</h3>
+<p>The Sampled Window approach provides identical Security Guarantees regardless of the network's block rate configuration.</p>
+<h3>Performance Optimization</h3>
+<p>By limiting windows to a fixed size instead of thousands, the system reduces computational overhead while maintaining accurate Timestamp Validation.</p>
+<h3>Attack Prevention</h3>
+<p>Strict Timestamp Validation prevents attackers from manipulating block timestamps to influence Difficulty Adjustment or disrupt Network Synchronization.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Sampled Window Approach</strong> - Uses sampled windows instead of full historical windows for constant size regardless of block rate</li>
+  <li><strong>Representative Average</strong> - Calculates average of central timestamps to create a representative value rather than using true median</li>
+  <li><strong>Ancestor Traversal</strong> - Builds windows by walking backward through Selected Parent Chain with position-based sampling</li>
+  <li><strong>Strict Validation</strong> - Block timestamps must be strictly greater than past median time (not equal)</li>
+  <li><strong>Caching Optimization</strong> - Uses aggressive caching to avoid redundant window calculations across related blocks</li>
+</ul>

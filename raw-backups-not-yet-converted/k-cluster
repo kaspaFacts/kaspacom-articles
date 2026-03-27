@@ -1,0 +1,59 @@
+<h1>Kaspa's k-Cluster</h1>
+<h2>What is a k-Cluster?</h2>
+<p>A k-cluster is the best connected <a href="https://kaspa.com/learn-kaspa/post/dag-and-kaspa" title="What is a DAG?" rel="follow noopener" target="_blank">DAG</a> within the full DAG.</p>
+<h2>The Challenge: Maintain Security</h2>
+<p>When multiple blocks can exist in parallel, the network needs a way to decide which blocks are best connected to measure and maintain Security.&nbsp; The k-cluster solves this by identifying blocks that are well-connected.</p>
+<h2>How K-Cluster Works</h2>
+<h3>Finding Well-Connected Blocks</h3>
+<p>The k-cluster identifies how connected a block is by examining its <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is Anticone?" rel="follow noopener" target="_blank">Anticone</a>.&nbsp; The Anticone represents blocks that have no clear ordering relationship with the candidate block.</p>
+<ul>
+  <li><strong>Well-connected blocks</strong> have small Anticones (they closely reference other blocks and are closely referenced by other blocks)</li>
+  <li><strong>Poorly-connected blocks</strong> have large Anticones (they are isolated from other blocks)</li>
+</ul>
+<h3>Blue vs Red Blocks</h3>
+<p><a href="https://kaspa.com/learn-kaspa/post/ghostdag-simplified" title="Intro to GHOSTDAG" rel="follow noopener" target="_blank">GHOSTDAG</a> uses the k-cluster to classify blocks into two categories:</p>
+<p><strong>Blue Blocks</strong>: Well-connected blocks that contribute to Security.</p>
+<p><strong>Red Blocks</strong>: Valid blocks that are poorly-connected and don't contribute to Security.</p>
+<p>Under normal conditions Anticones are smaller than k with &gt; 99% chance (all blocks are Blue under normal conditions).</p>
+<h3>Building the K-Cluster</h3>
+<p>GHOSTDAG creates the k-cluster through a step by step process:</p>
+<p><strong>Step 1: Find the Foundation</strong></p>
+<p>The algorithm starts by finding the Selected Parent.&nbsp; This Selected Parent is built on the best existing k-cluster choice and this k-cluster becomes the foundation of the new k-cluster.</p>
+<p><strong>Step 2: Identify Candidate Blocks</strong></p>
+<p>Next, it finds all blocks in the <a href="https://kaspa.com/learn-kaspa/post/dag-terminology" title="What is Mergeset?" rel="follow noopener" target="_blank">Mergeset</a> and orders them in topological order.</p>
+<p><strong>Step 3: Test Each Candidate</strong></p>
+<p>For each candidate block, GHOSTDAG checks if adding it would violate the k-cluster rules:</p>
+<ul>
+  <li><strong>Rule 1</strong>: The candidate's Blue Anticone must not exceed k</li>
+  <li><strong>Rule 2</strong>: Adding the candidate must not cause any existing Blue block's Anticone to exceed k</li>
+</ul>
+<p><strong>Step 4: Add or Reject</strong></p>
+<p>If both rules pass, the block becomes Blue (part of the k-cluster).&nbsp; If either rule fails, the block becomes Red (valid but not part of the k-cluster).</p>
+<p>This process ensures the k-cluster grows incrementally while maintaining its Security properties, with each new Blue block strengthening the Security of the cluster.</p>
+<h2>The K Parameter: Setting Connection Standards</h2>
+<p>The 'k' in k-cluster is a number that sets the connection standard.&nbsp; Blocks that violate either of the two k-cluster rules (described above) get marked as Red (poorly-connected).</p>
+<h3>Setting k</h3>
+<p>The k parameter uses the mathematical formula x = 2D&lambda; where D is Max Block Propagation Time and &lambda; is Block Creation Rate, then finds the minimum k where blocks are well connected with more than 99% chance:&nbsp;</p>
+<ul>
+  <li><strong>Glacial Slow (1 block/10 minutes): </strong>k = 1<strong></strong></li>
+  <li><strong>Slow (1 block/second)</strong>: k = 18</li>
+  <li><strong>Fast (10 blocks/second)</strong>: k = 124</li>
+  <li><strong>Ultra Fast (32 blocks/second)</strong>: k = 362</li>
+  <li><strong>Faster than Fast (100 blocks/second)</strong>: k = 1013</li>
+  <li><strong>Probability: </strong>k is set so Anticones &gt; k occur with less than 1% chance</li>
+</ul>
+<h2>Why This Matters</h2>
+<p><strong>Enables High-Speed Consensus</strong></p>
+<p>Identifying the k-cluster allows Kaspa to process blocks much faster than traditional blockchains.&nbsp; While Bitcoin creates one block every 10 minutes, Kaspa can handle multiple blocks per second by using the k-cluster to identify which parallel blocks can contribute to Security.</p>
+<p><strong>Mathematical Security Guarantees</strong></p>
+<p>The k parameter ensures that blocks with Anticones larger than k occur with less than 1% probability.&nbsp; This mathematical guarantee allows the k-cluster to reliably identify well-connected blocks even at high Block Creation Rates, since poorly-connected blocks (those violating the k constraint) remain statistically rare.</p>
+<p><strong>Scales with Network Speed</strong></p>
+<p>As Block Creation Rates increase, k is scaled up (from k=18 at 1 BPS to k=1013 at 100 BPS) to maintain the same Security level.&nbsp; This allows GHOSTDAG to use ANY Block Creation Rate while remining Secure.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li style="font-weight: bold;"><strong>k-cluster identifies the best-connected blocks in a DAG structure</strong></li>
+  <li style="font-weight: bold;"><strong>Blue blocks (k-cluster)&nbsp;identify the best connected DAG,&nbsp;red blocks are still valid</strong></li>
+  <li style="font-weight: bold;"><strong>The k parameter sets how strict the connection requirements are</strong></li>
+  <li style="font-weight: bold;"><strong>Higher block creation rates use higher k values to maintain Security</strong></li>
+  <li style="font-weight: bold;"><strong>GHOSTDAG maintains Security while enabling fast, parallel block creation</strong></li>
+</ul>

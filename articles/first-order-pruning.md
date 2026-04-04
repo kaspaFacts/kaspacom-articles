@@ -2,9 +2,9 @@
 
 First Order Pruning is the **first stage** of Kaspa's multi-phase storage optimization.  It removes old block transaction data while maintaining a UTXO Set at the pruning point for state validation - but crucially, it preserves all block headers to maintain blockchain integrity.
 
-**Why "First Order"? - **This terminology emphasizes that removing block bodies is just the beginning.  While First Order Pruning dramatically reduces storage requirements and lowers barriers to running a node (increasing decentralization), it's followed by additional pruning stages that can remove even more data ([Second Order Pruning](https://kaspa.com/learn-kaspa/post/second-order-pruning)).  This article focuses specifically on block body removal - the foundation that makes all subsequent optimizations possible.
+**Why "First Order"?** - This terminology emphasizes that removing block bodies is just the beginning.  While First Order Pruning dramatically reduces storage requirements and lowers barriers to running a node (increasing decentralization), it's followed by additional pruning stages that can remove even more data ([Second Order Pruning](https://kaspa.com/learn-kaspa/post/second-order-pruning)).  This article focuses specifically on block body removal - the foundation that makes all subsequent optimizations possible.
 
-**What does that mean? - **This article assumes no prior knowledge, so we start with traditional blockchain storage challenges, then explain how First Order Pruning works by maintaining UTXO Sets, what gets removed versus what gets preserved, how the pruning point UTXO Set enables validation, and how this creates the foundation for Kaspa's scalable storage model that enables broader network participation.
+**What does that mean?** - This article assumes no prior knowledge, so we start with traditional blockchain storage challenges, then explain how First Order Pruning works by maintaining UTXO Sets, what gets removed versus what gets preserved, how the pruning point UTXO Set enables validation, and how this creates the foundation for Kaspa's scalable storage model that enables broader network participation.
 
 ## Traditional Storage vs First Order Pruning
 

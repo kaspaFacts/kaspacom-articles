@@ -1,0 +1,54 @@
+<h2>What is KIP-10?</h2>
+<p>KIP-10 is a Kaspa Improvement Proposal that introduces transaction introspection opcodes and enhanced arithmetic capabilities to the Kaspa scripting language. It enables scripts to access transaction metadata directly and perform calculations with larger 8-byte integers, supporting advanced smart contracts and mutual transactions while maintaining compatibility with existing address types.</p>
+<h2>The Challenge: Script Limitations in Kaspa</h2>
+<p>Kaspa's original scripting system had limitations that prevented advanced transaction types and efficient micropayment solutions. The script engine could only access limited transaction data and was constrained to 4-byte arithmetic operations, making it impossible to implement certain types of spending conditions.</p>
+<p><strong>Limited Transaction Access</strong>: Scripts could not examine input/output amounts or script public keys, preventing conditional logic based on transaction properties. This made it impossible to implement features like additive-only spending or value-based constraints.</p>
+<p><strong>4-Byte Arithmetic Constraint</strong>: The original script engine limited arithmetic operations to 4-byte integers, restricting calculations to values up to 2,147,483,647. This was insufficient.</p>
+<p><strong>UTXO Bloat under KIP-9</strong>: KIP-9's storage mass system penalized transactions creating many small outputs, making traditional micropayment channels impractical. Without introspection capabilities, scripts couldn't enforce value-preserving spending patterns that would mitigate these penalties.</p>
+<p>KIP-10 addresses these challenges through a unified approach: adding transaction introspection opcodes that give scripts access to transaction data, expanding arithmetic to 8-byte integers for expanded calculations, and enabling spending conditions that work within KIP-9's constraints.</p>
+<h2>How KIP-10 Works</h2>
+<h3>Transaction Introspection Opcodes</h3>
+<p>KIP-10 introduces seven active opcodes that allow scripts to examine transaction properties. These opcodes are implemented in the script engine and execute successfully when called from transaction validation contexts.</p>
+<ul>
+  <li><strong>OpTxInputCount (0xb3)</strong>: Returns the total number of inputs in the transaction</li>
+  <li><strong>OpTxOutputCount (0xb4)</strong>: Returns the total number of outputs in the transaction</li>
+  <li><strong>OpTxInputIndex (0xb9)</strong>: Returns the index of the current input being validated</li>
+  <li><strong>OpTxInputAmount (0xbe)</strong>: Takes an input index parameter and returns that input's amount</li>
+  <li><strong>OpTxInputSpk (0xbf)</strong>: Takes an input index parameter and returns that input's script public key bytes</li>
+  <li><strong>OpTxOutputAmount (0xc2)</strong>: Takes an output index parameter and returns that output's amount</li>
+  <li><strong>OpTxOutputSpk (0xc3)</strong>: Takes an output index parameter and returns that output's script public key bytes</li>
+</ul>
+<p>The introspection opcodes include proper error handling for invalid access attempts.</p>
+<h3>Enhanced Integer Support</h3>
+<p>KIP-10 extends the script engine's arithmetic capabilities from 4-byte to 8-byte integers. This expansion applies to all arithmetic operations, numeric comparisons, and stack operations involving numbers. The change enables scripts to work with values up to 9 quintillion, sufficient for all Kaspa amounts and financial calculations.</p>
+<p>For example, scripts can now handle values larger than 2 billion (previously overflow) and perform precise calculations with large Kaspa amounts without losing precision.</p>
+<h3>Reserved Opcode Framework</h3>
+<p>KIP-10 reserves eleven opcodes for future features, ensuring the system can be enhanced without breaking existing scripts. This provides a clear path for future enhancements while preventing accidental use of unimplemented features.</p>
+<h2>How the Network Uses This</h2>
+<h3>Threshold-Based Spending Scripts</h3>
+<p>KIP-10 enables threshold scripts that allow additive-only spending patterns. These scripts can enforce that UTXOs can only be spent by creating outputs with greater or equal values sent to the same script address. This creates a natural compounding effect while preventing value extraction without authorization.</p>
+<p>The implementation uses OpTxInputAmount and OpTxOutputAmount to verify threshold conditions, OpTxInputSpk and OpTxOutputSpk to ensure funds return to the same script, and OpTxInputIndex to identify the current spending context. This pattern aligns with KIP-9's goal of controlling UTXO growth through value-based constraints.</p>
+<p>This matters because it enables automated services to "borrow" funds by adding value while preventing unauthorized value extraction, creating a practical approach for delegated spending.</p>
+<h3>Mining Pool Payment Optimization</h3>
+<p>Mining pools can use KIP-10 to create more efficient payout systems. Instead of accumulating coinbase UTXOs for infrequent large payouts, pools can use threshold-based P2SH addresses for each participant. When a block is mined, the pool can distribute rewards using a single transaction with multiple inputs and outputs, "borrowing" participants' UTXOs to meet KIP-9's storage mass requirements.</p>
+<p>KIP-9's mass penalties discourage transactions creating many small outputs, but KIP-10 scripts can enforce additive-only spending that naturally consolidates value while allowing frequent small transactions.</p>
+<h3>Mutual Transaction Support</h3>
+<p>KIP-10 provides the foundation for mutual transactions. By giving scripts access to transaction metadata, parties can create complex multi-party agreements without requiring all participants to sign every transaction. The introspection capabilities enable scripts to verify that transaction terms meet predefined conditions, reducing coordination overhead while maintaining security guarantees.</p>
+<h2>Why This Matters</h2>
+<h3>Enhanced Smart Contract Capabilities</h3>
+<p>KIP-10 expands Kaspa's smart contract potential by enabling scripts to make decisions based on transaction context. Scripts can now implement more complex logic that was previously impossible.</p>
+<p>The 8-byte integer support ensures these contracts can handle large values precisely, eliminating artificial constraints that limited earlier implementations.</p>
+<h3>Micropayment Efficiency</h3>
+<p>By enabling value-preserving spending patterns, KIP-10 makes micropayments practical within KIP-9's storage mass framework. KIP-9's mass penalties discourage transactions creating many small outputs, but KIP-10 scripts can enforce additive-only spending that naturally consolidates value while allowing frequent small transactions.</p>
+<p>This creates an efficient system for micropayment channels, streaming payments, and other high-frequency small-value transactions that would otherwise be prohibitively expensive under KIP-9's mass penalties.</p>
+<h3>Future Extensibility</h3>
+<p>The reserved opcode framework establishes a clear upgrade path for future enhancements. By explicitly marking certain opcodes as reserved, KIP-10 ensures that future KIPs can add new functionality without breaking existing scripts. This planned design supports Kaspa's long-term evolution while maintaining backward compatibility.</p>
+<p>For example, future KIPs could implement new introspection features without breaking existing KIP-10 scripts.</p>
+<h2>Key Takeaways</h2>
+<ul>
+  <li><strong>Mutual Transaction Foundation</strong> - Enables complex multi-party agreements without full signatures</li>
+  <li><strong>Seven Active Opcodes</strong> - The implementation includes seven functional introspection opcodes (0xb3, 0xb4, 0xb9, 0xbe, 0xbf, 0xc2, 0xc3) that provide access to transaction metadata</li>
+  <li><strong>8-Byte Arithmetic</strong> - Script arithmetic now supports 8-byte integers, enabling large precise calculations</li>
+  <li><strong>Reserved for Future</strong> - Eleven opcodes remain reserved for future expansion, providing a clear upgrade path for additional functionality</li>
+  <li><strong>KIP-9 Compatibility</strong> - KIP-10 enables efficient micropayments and mutual transactions within KIP-9's storage mass constraints through value-preserving spending patterns</li>
+</ul>

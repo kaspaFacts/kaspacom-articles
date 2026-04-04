@@ -8,11 +8,12 @@ The simplest spending condition is a signature check. This script requires anyon
 
 <code>// Script:  OP_CHECKSIG
 // Requires a valid signature from the specified public key
-
+//
 let script = ScriptBuilder::new()
 .add_data(&public_key)?       // Push 32-byte public key
-.add_op(OpCheckSig)?         // Verify signature
+.add_op(OpCheckSig)?          // Verify signature
 .drain();</code></pre>
+
 This demonstrates the core concept: OpCodes define the rules, and transactions provide the data to satisfy those rules.
 
 ### How It Works
@@ -20,7 +21,7 @@ This demonstrates the core concept: OpCodes define the rules, and transactions p
 During validation, the spending transaction provides a signature that gets verified against the public key in the script:
 
 <code>// Human readable translation:
-
+//
 verify(signature, public_key)
 // Result: true = allow spending, false = reject transaction
 </code></pre>
@@ -28,9 +29,9 @@ verify(signature, public_key)
 
 The script operates on a stack where data is pushed and popped:
 
-- **Step 1**: Transaction provides signature → Stack: [<signature>]
-- **Step 2**: Script pushes public_key → Stack: [<signature>, ]
-- **Step 3**: OP_CHECKSIG verifies → Stack: [<true>] if valid, [<false>] if invalid
+- **Step 1**: Transaction provides signature → Stack: [signature]
+- **Step 2**: Script pushes public_key → Stack: [signature, public_key]
+- **Step 3**: OP_CHECKSIG verifies → Stack: [true] if valid, [false] if invalid
 - **Step 4**: Final stack state determines if spending is allowed
 
 This simple Pay-to-Public-Key (P2PK) pattern is how ALL spending works on Kaspa. Complex spending conditions are built by combining these basic OpCodes in sophisticated ways, but every transaction follows this fundamental pattern of defining rules with OpCodes and satisfying them with transaction data.
@@ -122,11 +123,11 @@ Here's a simple script that requires a signature or a time lock:
 
 <code>// Script: OP_IF locktime OP_CHECKLOCKTIMEVERIFY OP_DROP OP_ELSE signature OP_CHECKSIG OP_ENDIF
 // This script requires either a valid signature OR the specified locktime to have passed
-
+//
 let script = ScriptBuilder::new()
 .add_op(OpIf)?                    // Start conditional
-.add_lock_time(1640995200)?        // Push locktime (Jan 1, 2022)
-.add_op(OpCheckLockTimeVerify)?     // Verify locktime has passed
+.add_lock_time(1640995200)?       // Push locktime (Jan 1, 2022)
+.add_op(OpCheckLockTimeVerify)?   // Verify locktime has passed
 .add_op(OpDrop)?                  // Remove locktime from stack
 .add_op(OpElse)?                  // Else branch
 .add_data(&signature)?            // Push signature
@@ -135,10 +136,11 @@ let script = ScriptBuilder::new()
 .add_op(OpEndIf)?                 // End conditional
 .drain();
 </code></pre>
+
 This script demonstrates how OpCodes combine to create complex spending conditions - in this case, a transaction that can be spent either with a signature or after a specific time.
 
 <code>// Human readable translation:
-
+//
 IF transaction.lock_time >= 1640995200 (Jan 1, 2022) THEN
 allow spending
 ELSE
@@ -154,16 +156,17 @@ ENDIF
 The current script structure:
 
 <code>.add_op(OpIf)?                    // Start conditional
-.add_lock_time(1640995200)?          // Push timestamp
-.add_op(OpCheckLockTimeVerify)?     // Verify time condition
-.add_op(OpDrop)?                  // Clean up stack
+.add_lock_time(1640995200)?        // Push timestamp
+.add_op(OpCheckLockTimeVerify)?    // Verify time condition
+.add_op(OpDrop)?                   // Clean up stack
 // IF branch ends here - no spending conditions!
-.add_op(OpElse)?                  // Else branch
-.add_data(&signature)?            // Push signature
-.add_data(&public_key)?           // Push public key
-.add_op(OpCheckSig)?              // Verify signature
-.add_op(OpEndIf)?                 // End conditional
+.add_op(OpElse)?                   // Else branch
+.add_data(&signature)?             // Push signature
+.add_data(&public_key)?            // Push public key
+.add_op(OpCheckSig)?               // Verify signature
+.add_op(OpEndIf)?                  // End conditional
 </code></pre>
+
 The <code>OpCheckLockTimeVerify</code> OpCode only verifies that enough time has passed. When it succeeds, the script continues execution. Since there are no additional OpCodes in the IF branch to verify authorization, the script succeeds and allows anyone to spend the funds.
 
 ### The Security Implication

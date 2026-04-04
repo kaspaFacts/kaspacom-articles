@@ -2,7 +2,7 @@
 
 Second Order Pruning is the advanced stage of Kaspa's storage optimization that removes consensus-related data while maintaining the ability to validate new blocks and participate in network consensus.  It goes beyond First Order Pruning by selectively removing DAG structure data, relations, and some headers themselves.
 
-**Why "Second Order"? - **This terminology emphasizes that after removing block bodies (First Order), Kaspa can remove additional consensus data while still maintaining validation capabilities.  Second Order Pruning enables maximum storage efficiency by removing redundant consensus information that isn't essential for ongoing validation.
+**Why "Second Order"?** - This terminology emphasizes that after removing block bodies (First Order), Kaspa can remove additional consensus data while still maintaining validation capabilities.  Second Order Pruning enables maximum storage efficiency by removing redundant consensus information that isn't essential for ongoing validation.
 
 **What does that mean? -** This article assumes knowledge of [First Order Pruning](https://kaspa.com/learn-kaspa/post/first-order-pruning-in-kaspa), so we start with what consensus data exists after First Order Pruning, then explain how Second Order Pruning selectively removes consensus structures, what gets preserved versus what gets removed, and how validation continues to work with reduced consensus data.
 

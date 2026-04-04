@@ -1,0 +1,39 @@
+## **DAG - Directed Acyclic Graph**
+
+By now you have probably heard that Kaspa is a BlockDAG, but what does that mean? This article is put together in a way that assumes no prior knowledge, so we start with graph theory. First we start with what is a Graph, then what is a Directed Graph, then we get to Directed Acyclic Graph, then how it applies to both Bitcoin and Kaspa.
+
+**Graph -** Graph theory, a field within mathematics and computer science, focuses on studying Graphs, which are structures that represent relationships between pairs of entities. These Graphs consist of vertices (also known as nodes or points) connected by edges (sometimes referred to as arcs, links, or lines). Graphs are categorized into Undirected Graphs, where connections between vertices are mutual, and Directed Graphs, where connections have a specific direction. As a key area of discrete mathematics, Graph Theory explores these structures extensively. The following image illustrates a Simple Undirected Graph where connections do not have direction.
+
+![undefined](https://cdn.buttercms.com/PU2hcO7mQC6vs49ePymw)
+
+**Directed Graph -** A Directed Graph, often called a digraph, is a structure used to show relationships where connections between points have a specific direction. Unlike regular graphs where connections go both ways, in a Directed Graph, each edge points from one vertex to another. In its simplest form, a Directed Graph consists of two main parts: a collection of vertices and a set of edges, where each edge is a pair of vertices with a clear direction (from one vertex to another, but not the other way around).  For example, if you have an edge from vertex X to vertex Y, X is the starting point and Y is the endpoint. This edge connects X to Y. A different edge could go from Y to X, but it would be a separate connection. In this basic setup, called a Directed Simple Graph, you can’t have multiple edges with the same direction between the same two vertices, nor can you have an edge that starts and ends at the same vertex (called a loop). The following image illustrates a directed graph where edges have direction, note the edge with two pointers represents two edges, each with a direction.
+
+![undefined](https://cdn.buttercms.com/f0y9pR9RiODss06zaLZ5)
+
+**Directed Acyclic Graph - **is a Directed Graph that contains no Cycles. It is composed of vertices and edges, where each edge has a direction from one vertex to another, ensuring that following the edge directions never results in a closed loop. A Directed Graph qualifies as a DAG if its vertices can be arranged in a linear sequence that respects the direction of all edges, known as a topological ordering. The following image illustrates a Directed Acyclic Graph where no Cycles (or loops) can be found.
+
+![undefined](https://cdn.buttercms.com/Kfdt2dAyRGKnaH9NRu51)
+
+## **Simplified Definitions**
+
+**Graph -** consists of vertices and edges that connect pairs of vertices, where vertices represent any type of object and edges represent connections between them.
+
+**Directed Graph -** each edge has a specific direction, pointing from one vertex to another. A path in a Directed Graph is a sequence of edges where the ending vertex of one edge is the starting vertex of the next edge in the sequence.
+
+**Directed Acyclic Graph -** a Directed Graph where no vertex can reach itself through a path that includes one or more edges, ensuring the absence of Cycles.
+
+There is much more to learn about Graphs but for our purpose, we only need to know that Kaspa's BlockDAG is just a structure, consisting of edges and vertices, connected in only one direction, and that we never end up in a cycle, it is acyclic, or a Directed Acyclic Graph.
+
+## **Bitcoin and Kaspa**
+
+**Bitcoin -** is a DAG, even though it is always referred to as a BlockChain, Bitcoin uses the DAG structure. Blocks as vertices, and their relationship as edges. Each block is connected in only one direction and following each connection, you will never make a Cycle, and always end up back at Genesis.
+
+<img src="https://cdn.buttercms.com/TTkaLT9ITjGaGzdj90db" alt="undefined">
+
+****
+
+**Kaspa -** is a DAG, Kaspa uses the DAG structure.  Blocks as vertices, and their relationship as edges. Each block is connected in only one direction and following each connection, you will never make a Cycle, and always end up back at Genesis.
+
+<img src="https://cdn.buttercms.com/P31XzHa9RySKXmCLTazx" alt="undefined">
+
+So what's the difference if both Bitcoin and Kaspa use a DAG? Bitcoin allows blocks to point to only one previous block. Kaspa allows blocks to point to multiple previous blocks. That is the only difference in the [structure](https://www.kaspa.com/learn-kaspa/post/dag-terminology).
